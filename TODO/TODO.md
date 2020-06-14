@@ -1,0 +1,1 @@
+### [380. Insert Delete Getrandom O(1)](https://leetcode.com/explore/challenge/card/june-leetcoding-challenge/540/week-2-june-8th-june-14th/3358/)    **06/12**
