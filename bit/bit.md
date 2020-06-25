@@ -1,4 +1,4 @@
-# 136. Single Number
+### 136. Single Number
 Given a non-empty array of integers, every element appears twice except for one. Find that single one.
 
 Note:
@@ -31,7 +31,7 @@ class Solution {
 }
 ```
 
-# 137. Single Number II
+### 137. Single Number II
 Given a non-empty array of integers, every element appears three times except for one, which appears exactly once. Find that single one.
 
 Note:
@@ -64,7 +64,7 @@ class Solution {
 }
 ```
 
-# 260. Single Number III
+### 260. Single Number III
 Given an array of numbers nums, in which exactly two elements appear only once and all the other elements appear exactly twice. Find the two elements that appear only once.
 
 > Example:
