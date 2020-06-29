@@ -17,6 +17,7 @@ You are given coins of different denominations and a total amount of money. Writ
 >      5=1+1+1+1+1
 
 ```java
+
 /*
 *Note: the traditional approach dp[i] = # of ways to make amount j using all coins would not work, since duplicated value are included
 
@@ -28,6 +29,7 @@ induction rule:
     dp[i,j] = either use coin[i] or not use coin[i] in the combination
             = dp[i, j - coins[i]] + dp[i - 1, j]
 */
+
 class Solution {
     public int change(int amount, int[] coins) {
         if (amount == 0) {
@@ -135,5 +137,161 @@ class Solution {
         return dp[0][0];
         
     }
+}
+```
+
+
+### L. Longest Ascending Subarray
+Given an unsorted array, find the length of the longest subarray in which the numbers are in ascending order.
+
+```java
+/*
+let dp[i] = las ending at arr[i]
+
+base case:
+  dp[0] = 1
+
+induction rule:
+  dp[i] = dp[i - 1] + 1 if arr[i] > arr[i - 1]
+update a global maximum
+*/
+public class Solution {
+  public int longest(int[] arr) {
+    if (arr.length == 0) {
+      return 0;
+    }
+
+    int prev = 1;
+    int max = prev;
+    for (int i = 1; i < arr.length; i++) {
+      if (arr[i] > arr[i - 1]) {
+        prev += 1;
+        max = Math.max(prev, max);
+      } else {
+        prev = 1;
+      }
+    }
+    return max;
+
+  }
+}
+
+```
+
+### L. Longest Ascending Subsequence
+
+Given an array A[0]...A[n-1] of integers, find out the length of the longest ascending subsequence.
+
+```java
+/*
+let dp[i] = las ending at arr[i]
+
+base case:
+  dp[0] = 1
+
+induction rule:
+  dp[i] = Math.max(dp[j]) + 1 if arr[i] > arr[j], for j in [0 ... i - 1]
+use a global max to track the max
+
+time: O(n^2)
+space: O(n)
+*/
+public class Solution {
+  public int longest(int[] arr) {
+    // Write your solution here
+    int n = arr.length;
+    if (n == 0) {
+      return 0;
+    }
+    int[] dp = new int[n];
+    int max = 1;
+    dp[0] = 1;
+    for (int i = 1; i < n; i++) {
+      dp[i] = 1;
+      for (int j = i - 1; j >= 0; j--) {
+        if (arr[i] > arr[j]) {
+          dp[i] = Math.max(dp[i], dp[j] + 1);
+        }
+      }
+      max = Math.max(dp[i], max);
+    }
+
+    return max;
+  }
+}
+```
+
+### L. Longest Ascending Subsequence II
+
+Given an array A[0]...A[n-1] of integers, find out the longest ascending subsequence. If there are multiple results, then return any valid result.
+
+```
+Examples
+Input: A = {5, 2, 6, 3, 4, 7, 5}
+Output: [2,3,4,5]
+Because [2, 3, 4, 5] is one of the longest ascending subsequences.
+```
+
+```java
+/*
+same as Longest Ascending Subsequence I, this time we are returning the sequence itself so we add some more logic to track
+
+let dp[i][0] = las including arr[i], dp[i][1] = the previous index used
+
+base case:
+  dp[0][0] = 1;
+  dp[0][1] = -1;  //-1 mark no previous index anymore
+
+induction rule:
+  dp[i][0] = Math.max(dp[i][0] + 1, 1), if arr[i] > arr[j] for j in [0 ... i - 1]
+  dp[i][1] = the j in the previous step, -1 if no j used
+
+time: O(n^2)
+space: O(n)
+
+*/
+
+public class Solution {
+  public int[] longest(int[] arr) {
+    // Write your solution here
+    int n = arr.length;
+    if (n == 0) {
+      return arr;
+    } 
+
+    int[][] dp = new int[n][2];
+    int max = 1;
+    int maxIdx = 0;
+    dp[0][0] = 1;
+    dp[0][1] = -1;
+    
+    for (int i = 1; i < n; i++) {
+      dp[i][0] = 1;
+      dp[i][1] = -1;
+
+      for (int j = i - 1; j >= 0; j--) {
+        if (arr[i] > arr[j]) {
+          if (dp[j][0] + 1 > dp[i][0]) {
+            dp[i][0] = dp[j][0] + 1;
+            dp[i][1] = j;
+          }
+        }
+      }
+
+      if (dp[i][0] > max) {
+        maxIdx = i;
+        max = dp[i][0];
+      }
+
+    }
+
+    int[] res = new int[max];
+    for (int i = res.length - 1; i >= 0; i--) {
+      res[i] = arr[maxIdx];
+      maxIdx = dp[maxIdx][1];
+    }
+    return res;
+  
+  }
 }
 ```

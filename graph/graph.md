@@ -88,3 +88,91 @@ class Solution {
 }
 ```
 
+### [332. Reconstruct Itinerary](https://leetcode.com/problems/reconstruct-itinerary/)
+
+Given a list of airline tickets represented by pairs of departure and arrival airports [from, to], reconstruct the itinerary in order. All of the tickets belong to a man who departs from `JFK`. Thus, the itinerary must begin with `JFK`.
+
+Note:
+
+If there are multiple valid itineraries, you should return the itinerary that has the smallest lexical order when read as a single string. For example, the itinerary `["JFK", "LGA"]` has a smaller lexical order than `["JFK", "LGB"].`
+All airports are represented by three capital letters (IATA code).
+You may assume all tickets form at least one valid itinerary.
+One must use all the tickets once and only once.
+Example 1:
+
+```
+Input: [["MUC", "LHR"], ["JFK", "MUC"], ["SFO", "SJC"], ["LHR", "SFO"]]
+Output: ["JFK", "MUC", "LHR", "SFO", "SJC"]
+```
+
+Example 2:
+
+```
+Input: [["JFK","SFO"],["JFK","ATL"],["SFO","ATL"],["ATL","JFK"],["ATL","SFO"]]
+Output: ["JFK","ATL","JFK","SFO","ATL","SFO"]
+Explanation: Another possible reconstruction is ["JFK","SFO","ATL","JFK","ATL","SFO"].
+             But it is larger in lexical order.
+```
+
+```java
+/*
+dfs & topological sort:
+    recursive rule:
+        while min heap is non empty:
+            pick the smallest dest d from min heap
+            dfs
+        add cur to the result
+    base case:
+        when pq is empty: write cur to result, return
+
+time: O(V + E)
+space: O(V + E)
+*/
+class Solution {
+    public List<String> findItinerary(List<List<String>> tickets) {
+        List<String> res = new ArrayList<>();
+        Map<String, PriorityQueue<String>> map = new HashMap<>();
+        buildGraph(tickets, map);
+        dfs("JFK", map, res);
+        reverse(res);
+        return res;
+    }
+    public void dfs(String from, Map<String, PriorityQueue<String>> map, List<String> res) 
+    {
+        PriorityQueue<String> neighbors = map.getOrDefault(from, new PriorityQueue<String>());
+        if (neighbors.isEmpty()) {
+            res.add(from);
+            return;
+        }
+        
+        //for each neighbor, visit
+        while (!neighbors.isEmpty()) {
+            String to = neighbors.poll();
+            dfs(to, map, res);
+        }
+        res.add(from);
+    }
+    public void buildGraph(List<List<String>> tickets, Map<String, PriorityQueue<String>> map)
+    {
+        for (List<String> t : tickets) {
+            String from = t.get(0);
+            String to = t.get(1);
+            PriorityQueue<String> l = map.getOrDefault(from, new PriorityQueue<String>());
+            l.offer(to);
+            map.put(from, l);
+        }    
+    }
+    public void reverse(List<String> ls) {
+        int i = 0;
+        int j = ls.size() - 1;
+        while (i < j) {
+            String temp = ls.get(i);
+            ls.set(i, ls.get(j));
+            ls.set(j, temp);
+            i++;
+            j--;
+        }
+    }
+}
+
+```
