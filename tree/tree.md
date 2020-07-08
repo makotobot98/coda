@@ -209,3 +209,115 @@ class Solution {
     }
 }
 ```
+
+
+### [212. Word Search II](https://leetcode.com/problems/word-search-ii/) *****
+Given a 2D board and a list of words from the dictionary, find all words in the board.
+
+Each word must be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.
+
+ 
+```
+Example:
+
+Input: 
+board = [
+  ['o','a','a','n'],
+  ['e','t','a','e'],
+  ['i','h','k','r'],
+  ['i','f','l','v']
+]
+words = ["oath","pea","eat","rain"]
+
+Output: ["eat","oath"]
+```
+
+```java
+/*
+alg: brute force dfs search for each word in the array, TLE(time limit exceeded)
+
+time: O(mnw), m = # of rows, n = # of cols, w = # of words
+space: O(l), l = max length of a word
+
+
+dfs:
+
+let c = char to search in word index at cur
+i,j = current coordinate of search in board
+
+recursive rule:
+     for neighbor of i,j:
+        if board[i][j] == word[cur] && i,j not visited:
+            add i,j to visited
+            return true if dfs(neighbor)
+            remove i,j from visited
+    return false
+
+base case:
+    if i,j is out of bound: return false
+    if cur == word.length: return true
+
+use a hashset to track the visited coordinate
+*/
+class Solution {
+    int[][] dirs = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+    public List<String> findWords(char[][] board, String[] words) {
+        int m = board.length;
+        int n = board[0].length;
+        Set<List<Integer>> visited;
+        List<String> res = new ArrayList<>();
+        for (String w : words) {
+            boolean found = false;
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (board[i][j] == w.charAt(0)) {
+                        visited = new HashSet<>();
+                        //System.out.println("search: i: " + i + " " + j + " " + w);
+                        visited.add(Arrays.asList(i, j));
+                        if (dfs(board, w, visited, i, j, 1)) {
+                            res.add(w);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found == true) {
+                    break;
+                }
+            }
+        }
+        
+        return res;
+    }
+    public boolean dfs(char[][] b, String word, Set<List<Integer>> visited, int i, int j, int cur)
+    {
+        int m = b.length;
+        int n = b[0].length;
+        if (cur == word.length()) {
+            return true;
+        }
+        
+        char c = word.charAt(cur);
+        //System.out.println(c);
+        for(int[] dir : dirs) {
+            int inext = i + dir[0];
+            int jnext = j + dir[1];
+            
+            if (inext >= 0 && inext < m && jnext >= 0 && jnext < n && b[inext][jnext] == c) {
+                //if inext,jnext is in the range, and next char matches
+                List<Integer> coord = Arrays.asList(inext, jnext);
+                //System.out.println("\tcoord: i: " + inext + ",j: " + jnext);
+                if (!visited.contains(coord)) {
+                    visited.add(coord);
+                    //System.out.println("\tmatch: i: " + inext + ",j: " + jnext+ ",cur: " + cur);
+                    if (dfs(b, word, visited, inext, jnext, cur + 1)) {
+                        return true;
+                    }
+                    visited.remove(coord);
+                }
+            }
+        }
+        return false;
+    }
+}
+```

@@ -70,3 +70,72 @@ public class Solution {
   }
 }
 ```
+
+### [441. Arranging Coins](https://leetcode.com/problems/arranging-coins/)
+You have a total of n coins that you want to form in a staircase shape, where every k-th row must have exactly k coins.
+
+Given n, find the total number of full staircase rows that can be formed.
+
+n is a non-negative integer and fits within the range of a 32-bit signed integer.
+```
+Example 1:
+
+n = 5
+
+The coins can form the following rows:
+¤
+¤ ¤
+¤ ¤
+
+Because the 3rd row is incomplete, we return 2.
+
+Example 2:
+
+n = 8
+
+The coins can form the following rows:
+¤
+¤ ¤
+¤ ¤ ¤
+¤ ¤
+
+Because the 4th row is incomplete, we return 3.
+```
+
+```java
+/*
+
+
+n: 1 2 3 4 5 6 7 8
+s: 1 1 2 2 2 3 3 3
+
+given row i, # of coins needed to make to row i = i(i + 1) / 2
+
+binary search:
+    l = 0, r = n
+    
+    if mid*mid + 1 / 2 == n: return mid
+    if < n: l = mid
+    else: r = mid - 1
+*/
+class Solution {
+    public int arrangeCoins(int n) {
+        int l = 0;
+        int r = n;
+        
+        while (l + 1 < r) {
+            long mid = l + (r - l) / 2;
+            long sum = mid * (mid + 1) / 2;
+            if (sum == n) {
+                return (int) mid;
+            } else if (sum < n) {
+                l = (int) mid;
+            } else {
+                r = (int) mid - 1;
+            }
+        }//l + 1 >= r
+        long sum = (long) r * (r + 1) / 2; //tricky here, must cast
+        return sum <= (long) n ? r : l;
+    }
+}
+```

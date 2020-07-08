@@ -295,3 +295,116 @@ public class Solution {
   }
 }
 ```
+
+
+### L. Largest SubArray Product ***
+
+Given an unsorted array of doubles, find the subarray that has the greatest product. Return the product.
+
+Assumptions
+
+The given array is not null and has length of at least 1.
+Examples
+
+`{2.0, -0.1, 4, -2, -1.5}`, the largest subarray product is `4 * (-2) * (-1.5) = 12`
+
+```java
+/*
+dp:
+max product including arr[i] max( min product ending at arr[i - 1] * arr[i],
+                                  max * arr[i],
+                                  arr[i])
+
+preprocess to generate min/max product ending at arr[i]
+
+time: O(n)
+spcae: O(n)
+*/
+public class Solution {
+  public double largestProduct(double[] arr) {
+    int n = arr.length;
+    if (n == 0) {
+      return 0;
+    }
+
+    double[] min = new double[n];
+    double[] max = new double[n];
+    double[] dp = new double[n];
+
+    min[0] = arr[0];
+    max[0] = arr[0];
+    dp[0] = arr[0];
+    double maxP = arr[0];
+
+    for (int i = 1; i < n; i++) {
+      min[i] = Math.min(min[i - 1] * arr[i], Math.min(max[i - 1] * arr[i], arr[i]));
+      max[i] = Math.max(max[i - 1] * arr[i], Math.max(min[i - 1] * arr[i], arr[i]));
+      dp[i] = Math.max(min[i - 1] * arr[i], 
+                  Math.max(
+                    max[i - 1] * arr[i],
+                    arr[i]
+                  ));
+      maxP = Math.max(dp[i], maxP);
+    }
+
+    return maxP;
+
+  }
+}
+
+```
+
+### L. Interleave Strings
+
+```java
+/*
+let dp[i][j][k] = if can merge a[0 ... i - 1] and b[0 ... j - 1] to make c[0 ... k - 1]
+
+base case:
+dp[0][0][0] = true
+dp[1][0][1] = a[0] == c[0] ? true : false
+dp[0][1][1] = b[0] == c[0] ? true : false
+
+induction rule:
+dp[i][j][k] = 
+  if a[i - 1] == c[k - 1] && dp[i - 1][j][k - 1]: true
+  if b[j - 1] == c[k - 1] && dp[i][j - 1][k - 1]: true
+  false otherwise
+
+*/
+
+public class Solution {
+  public boolean canMerge(String a, String b, String c) {
+    int m = a.length();
+    int n = b.length();
+    int w = c.length();
+    if (m == 0 && n == 0 && w == 0) {
+      return true;
+    }
+    
+    boolean[][][] dp = new boolean[m + 1][n + 1][w + 1];
+    dp[0][0][0] = true;
+    for (int i = 1; i <= Math.min(m, w); i++) {
+      dp[i][0][i] = a.charAt(i - 1) == c.charAt(i - 1) && dp[i - 1][0][i - 1];
+    }
+    for (int i = 1; i <= Math.min(n, w); i++) {
+      dp[0][i][i] = b.charAt(i - 1) == c.charAt(i - 1) && dp[0][i - 1][i - 1];
+    }
+
+
+    for (int i = 1; i <= m; i++) {
+      for (int j = 1; j <= n; j++) {
+        for (int k = 1; k <= w; k++) {
+          if (a.charAt(i - 1) == c.charAt(k - 1) && dp[i - 1][j][k - 1]) {
+            dp[i][j][k] = true;
+          } else if (b.charAt(j - 1) == c.charAt(k - 1) && dp[i][j - 1][k - 1]) {
+            dp[i][j][k] = true;
+          }
+        }
+      }
+    }
+    return dp[m][n][w];
+  }
+}
+
+```

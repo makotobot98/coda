@@ -49,3 +49,79 @@ class Solution {
     }
 }
 ```
+
+### [15. Three Sum] (https://leetcode.com/problems/3sum/) ***
+
+Given an array nums of n integers, are there elements a, b, c in nums such that a + b + c = 0? Find all unique triplets in the array which gives the sum of zero.
+
+Note:
+
+The solution set must not contain duplicate triplets.
+
+```
+Example:
+
+Given array nums = [-1, 0, 1, 2, -1, -4],
+
+A solution set is:
+[
+  [-1, 0, 1],
+  [-1, -1, 2]
+]
+```
+
+```java
+/*
+algorithm: two sum extension
+
+preprocess: sort the input array
+pick a num, then run two sum for the remaining range of numbers. after each two sum, move the num to the next non-duplicate number to ensure non-duplicate solutions
+
+time: O(nlogn + n^2) for sorting + complexity for run two pointer
+space: O(logn) for cost for sortling
+*/
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        int i = 0;
+        int n = nums.length;
+        while (i < n) {
+            int j = i + 1;
+            List<List<Integer>> sums = twoSum(nums, j, n - 1, -nums[i]); //nums[i] + twoSum = 0
+            for (List<Integer> sum : sums) {
+                sum.add(nums[i]);
+                res.add(sum);
+            }
+            
+            i++;
+            while (i < n && nums[i] == nums[i - 1]) {
+                i++;
+            }
+        }
+        return res;
+    }
+    public List<List<Integer>> twoSum(int[] nums, int l, int r, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        
+        while (l < r) {
+            int sum = nums[l] + nums[r];
+            if (sum == target) {
+                List<Integer> sumList = new ArrayList<>();
+                sumList.add(nums[l]);
+                sumList.add(nums[r]);
+                res.add(sumList);
+                l++;
+                while (l < r && nums[l] == nums[l - 1]) {
+                    l++;
+                }
+            } else if (sum < target) {
+                l++;
+            } else {
+                r--;
+            }
+        }
+        return res;
+    }
+}
+```
