@@ -134,3 +134,102 @@ class Solution {
     }
 }
 ```
+
+### [151. Reverse Words in a String](https://leetcode.com/problems/reverse-words-in-a-string/) ***
+Given an input string, reverse the string word by word.
+
+ 
+```
+Example 1:
+
+Input: "the sky is blue"
+Output: "blue is sky the"
+Example 2:
+
+Input: "  hello world!  "
+Output: "world! hello"
+Explanation: Your reversed string should not contain leading or trailing spaces.
+Example 3:
+
+Input: "a good   example"
+Output: "example good a"
+Explanation: You need to reduce multiple spaces between two words to a single space in the reversed string.
+```
+
+```java
+/*
+"hello yahoo"
+"oohay olleo"
+"yahoo olleo"
+
+->preprocess: remove all leading and trailing spaces
+-> reverse entire string, then reverse each word
+
+time: O(n)
+space: O(n)
+
+*/
+class Solution {
+    public String reverseWords(String s) {
+        int n = s.length();
+        if (n == 0) {
+            return s;
+        }
+        StringBuilder sb = removeSpace(s);
+        n = sb.length();
+        reverse(sb, 0, n - 1);
+        int i = 0;
+        for (int j = 0; j <= n; j++) {
+            if (j == n || sb.charAt(j) == ' ') {
+                reverse(sb, i, j - 1);
+                i = j + 1;
+            }
+            
+        }
+        
+        return sb.toString();
+    }
+    public void reverse(StringBuilder sb, int i, int j) {
+        while (i < j) {
+            char temp = sb.charAt(i);
+            sb.setCharAt(i, sb.charAt(j));
+            sb.setCharAt(j, temp);
+            i++;
+            j--;
+        }
+    }
+    
+    /*
+    alg: two pointer
+    define [0, i) removed space chars
+           [i, j) spaces
+           [j, n) unvisited
+    
+    for j < n:
+        if j == ' ':
+            if i == 0: j++
+            if s[i - 1] == ' ': j++
+        if j != ' ':
+            s[i++] = s[j++]
+    post process to remove the last space
+    */
+    public StringBuilder removeSpace(String s) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        int n = s.length();
+        for (int j = 0; j < n; j++) {
+            if (s.charAt(j) == ' ') {
+                if (sb.length() > 0 && sb.charAt(sb.length() - 1) != ' ') {
+                    sb.append(s.charAt(j));
+                }
+            } else {
+                sb.append(s.charAt(j));
+            }
+        }
+        if (sb.length() > 0 && sb.charAt(sb.length() - 1) == ' ') {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        return sb;
+    }
+}
+```

@@ -408,3 +408,607 @@ public class Solution {
 }
 
 ```
+
+### L. Edit Distance    ****
+Given two strings of alphanumeric characters, determine the minimum number of Replace, Delete, and Insert operations needed to transform one string into the other.
+
+```
+Examples
+
+string one: “sigh”, string two : “asith”
+
+the edit distance between one and two is 2 (one insert “a” at front then replace “g” with “t”).
+```
+
+```java
+/*
+alg: dp
+
+let dp[i][j] = edit distance to make one[0 ... i) to two[0 ... j)
+
+base case:
+  dp[0][i] = i
+  dp[0][j] = j
+induction rule:
+  dp[i][j] = dp[i - 1][j - 1] if one[i - 1] == two[j - 1]
+           = min(replace, delete, insert)
+                 (dp[i - 1][j - 1], [i - 1][j], [i][j - 1])
+
+time: O(n^2)
+space: O(n^2)
+*/
+public class Solution {
+  public int editDistance(String one, String two) {
+    // Write your solution here
+    int m = one.length();
+    int n = two.length();
+    if (m == 0 || n == 0) {
+      return m == 0 ? n : m;
+    }
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 0; i <= m; i++) {
+      dp[i][0] = i;
+    }
+    for (int j = 0; j <= n; j++) {
+      dp[0][j] = j;
+    }
+
+    for (int i = 1; i <= m; i++) {
+      for (int j = 1; j <= n; j++) {
+        if (one.charAt(i - 1) == two.charAt(j - 1)) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1])) + 1;
+        }
+      }
+    }
+    return dp[m][n];
+  }
+}
+
+```
+### [87. Scramble String](https://leetcode.com/problems/scramble-string/) *****
+Given a string s1, we may represent it as a binary tree by partitioning it to two non-empty substrings recursively.
+
+Below is one possible representation of s1 = "great":
+```
+    great
+   /    \
+  gr    eat
+ / \    /  \
+g   r  e   at
+           / \
+          a   t
+
+To scramble the string, we may choose any non-leaf node and swap its two children.
+
+For example, if we choose the node "gr" and swap its two children, it produces a scrambled string "rgeat".
+    rgeat
+   /    \
+  rg    eat
+ / \    /  \
+r   g  e   at
+           / \
+          a   t
+We say that "rgeat" is a scrambled string of "great".
+Similarly, if we continue to swap the children of nodes "eat" and "at", it produces a scrambled string "rgtae".
+
+    rgtae
+   /    \
+  rg    tae
+ / \    /  \
+r   g  ta  e
+       / \
+      t   a
+We say that "rgtae" is a scrambled string of "great".
+```
+
+**Given two strings s1 and s2 of the same length, determine if s2 is a scrambled string of s1.**
+
+```
+Example 1:
+
+Input: s1 = "great", s2 = "rgeat"
+Output: true
+Example 2:
+
+Input: s1 = "abcde", s2 = "caebd"
+Output: false
+```
+
+```java
+/*
+alg recursion with mem:
+
+let dp[i][j][k] = if can scramble s1[i ... i + k - 1], and s2[k ... j + k - 1]
+
+recursive rule:
+    pick a partition size p, so we split s1 to [i .. i + p - 1] and [i + p ... i + k - 1]
+    s2 to either s2[j ... j + p - 1] and [j + p ... j + k - 1], or s2[j][] and [j + k - p + 1 ... j]
+    
+    so if f(i, j, p) && f(i + p, j + p, k - p) || f(i, j + k - p, p) && f(i + p, j, k - p)
+
+base case:
+    f(i, j, 1) = s1[i] == s2[j]
+
+iterative solution:
+    we build dp[i][j][k] bottom up, since refering to i + ?, j + ?, k - ?, and we know base case for k = 1, we build from k [0 ... len], then i, j from [0 ... len]
+
+time: O(n^4)
+space: O(n^3)
+
+*/
+class Solution {
+    public boolean isScramble(String s1, String s2) {
+        if (s1.length() != s2.length()) {
+            return false;
+        }
+        int n = s1.length();
+        if (n == 0) {
+          return true;  //two empty string
+        }
+        boolean[][][] dp = new boolean[n][n][n + 1];
+        for (int k = 1; k <= n; k++) {
+            for (int i = 0; i + k - 1 < n; i++) {
+                for (int j = 0; j + k - 1 < n; j++) {
+                    if (k == 1) {
+                        dp[i][j][k] = s1.charAt(i) == s2.charAt(j);
+                    } else {
+                        for (int p = 1; p < k; p++) {
+                            if ((dp[i][j][p] && dp[i + p][j + p][k - p]) ||
+                                (dp[i][j + k - p][p] && dp[i + p][j][k - p])) {
+                                dp[i][j][k] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return dp[0][0][n];
+    }
+}
+```
+
+# DP as algorithm optimizations
+
+### L. Ascending Triple I **
+Determine if the given integer array has three indices such that i < j < k and a[i] < a[j] < a[k].
+```
+Examples:
+
+{1, 5, 2, 4}, return true since i = 0, j = 2, k = 3
+
+{4, 3, 2, 1}, return false
+```
+
+```java
+/*
+alg1: brute force is to n^2 enumerate all cases
+alg2: use two helper dp, M1[i] = min from arr[0, i], M2[i] = max from arr[i, n - 1]
+iterate through each arr[i] see if possible to find a j such that M1[j] < arr[j] < M2[j]
+time: O(n)
+space: O(n)
+alg3: two pointer optimization https://www.cnblogs.com/grandyang/p/5194599.html
+*/
+public class Solution {
+  public boolean existIJK(int[] arr) {
+    int n = arr.length;
+    int[] min = new int[n];
+    int[] max = new int[n];
+    
+    for (int i = 0; i < n; i++) {
+      min[i] = i == 0 ? arr[0] : Math.min(min[i - 1], arr[i]);
+    }
+    for (int i = n - 1; i >= 0; i--) {
+      max[i] = i == n - 1 ? arr[n - 1] : Math.max(max[i + 1], arr[i]);
+    }
+
+    //iterate to see if possible
+    for (int i = 1; i < n - 1; i++) {
+      if (arr[i] > min[i] && arr[i] < max[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+```
+
+
+### L. Product of Array Except Self   ***
+Given an array of n integers where n > 1, nums, return an array output such that `output[i]` is equal to the product of all the elements of nums except `nums[i]`.
+
+Solve it without division and in O(n).
+```
+For example, given [1,2,3,4], return [24,12,8,6].
+
+Follow up:
+Could you solve it with constant space complexity? (Note: The output array does not count as extra space for the purpose of space complexity analysis.)
+```
+
+```java
+/*
+alg: two pass dp
+
+first pass: compute dp, st dp[i] = product from arr[0 ... i)
+
+
+second pass: compte dp st dp[i] = product except arr[i] & dp2[i] = product form arr(i, n - 1]
+                                = dp[i] * dp2[i], dp2[i] = dp2[i + 1] * nums[i + 1]
+note space for dp2[i] can be optimized using O(1)
+                              
+
+time: O(n)
+space: O(1)
+
+*/
+public class Solution {
+  public int[] productExceptSelf(int[] nums) {
+    int n = nums.length;
+    if (n <= 1) {
+      return nums;
+    }
+    int[] dp = new int[n];
+    dp[0] = 1;
+
+    //first pass
+    for (int i = 1; i < n; i++) {
+      dp[i] = dp[i - 1] * nums[i - 1];
+    }
+
+    //second pass
+    int dp2 = 1;
+    for (int i = n - 2; i >= 0; i--) {
+      dp2 *= nums[i + 1];
+      dp[i] = dp[i] * dp2;
+    }
+    return dp;
+  }
+}
+```
+
+
+### L. Replacements of A and B
+Given a string with only character 'a' and 'b', replace some of the characters such that the string becomes in the forms of all the 'b's are on the right side of all the 'a's.
+
+Determine what is the minimum number of replacements needed.
+
+```
+Examples:
+
+"abaab", the minimum number of replacements needed is 1 (replace the first 'b' with 'a' so that the string becomes "aaaab").
+```
+
+```java
+/*
+let dp[i] = # of b on arr[0 ... i], dp2[i] = # of a on from arr[i ... n - 1]
+
+then if arr[i] == 'a', # of min replacement = dp[i]
+     if arr[i] == 'b', # of min replacement = dp2[i]
+
+update a global minimum
+time: O(n)
+space: O(1)
+*/
+public class Solution {
+  public int minReplacements(String input) {
+    int n = input.length();
+    if (n == 0) {
+      return n;
+    } 
+    
+    int[] B = new int[n];
+    int[] A = new int[n];
+    B[0] = input.charAt(0) == 'b' ? 1 : 0;
+    for (int i = 1; i < n; i++) {
+      B[i] = input.charAt(i) == 'b' ? 1 + B[i - 1] : B[i - 1];
+    }
+    A[n - 1] = input.charAt(n - 1) == 'a' ? 1 : 0;
+    for (int i = n - 2; i >= 0; i--) {
+      A[i] = input.charAt(i) == 'a' ? 1 + A[i + 1] : A[i + 1];
+    }
+
+    int min = Integer.MAX_VALUE;
+    for (int i = 0; i < n; i++) {
+      int nreplace = input.charAt(i) == 'a' ? B[i] + A[i] - 1 : i + 1 - B[i] + A[i];
+      min = Math.min(min, nreplace);
+    }
+    return min;
+  }
+}
+
+```
+
+**Method2 Optimized with O(1) space**
+```java
+/*
+alg: preprocesing two dp helper, dp1[i] = # of A from input[0, i], dp2[i] = # of B from input [0, i]
+
+post processing iterate each index i:
+  for i: (let n be size of input)
+    n1 = # of A in [0, i] = dp1[i]
+    n2 = # of A in [i + 1, n - 1] = dp1[n - 1] - dp1[i]
+    n3 = # of B ... = dp2[i]
+    n4 = # .... = dp2[n - 1] - dp2[i]
+    to flip left side a, and right side b
+      # flip left = total - # of A in [0, i] = (i + 1) - dp1[i]
+      # flip right = # of A in [i + 1, n - 1] = n2
+    to  flip left side b and right side a
+      # flip left = dp1[i]
+      # flip right = toal - # of A in [i + 1, n - 1] = (n - i) - dp2[i]
+    notice we don't really need to compute dp2[i] and can derive the results
+    dp1[i] = dp1[i - 1] if input[i] != A
+           = dp1[i - 1] + 1 if input[i] == A
+time: O(n)
+space: O(n) --> improve to O(1) since only using dp[i - 1]
+*/
+public class Solution {
+  public int minReplacements(String input) {
+    if (input.length() < 2) {
+      return 0;
+    }
+    //compute dp[n - 1]
+    int total = 0;
+    for (int i = 0; i < input.length(); i++) {
+      total += input.charAt(i) == 'a' ? 1 : 0;
+    }
+    //corner case: if total = 0, means all b, return 0 since no need to replace
+    if (total == 0) {
+      return 0;
+    }
+    //iterate with dp[i]
+    int dp = 0;
+    int min = Integer.MAX_VALUE;
+    for (int i = 0; i < input.length(); i++) {
+      dp += input.charAt(i) == 'a' ? 1 : 0;
+      //# left flip = i + 1 - dp
+      //# right flip = total - dp
+      min = Math.min(min, i + 1 - dp + total - dp);
+    }
+    //flip all to a = size - total of a
+    //flip all to b = total of a
+    min = Math.min(min, Math.min(input.length() - total, total));
+    return min;
+  }
+}
+
+```
+
+### Longest Bitonic Sequence  **
+Given an array with all integers,  a sub-sequence of it is called Bitonic if it is first sorted in an ascending order, then sorted in a descending order. How can you find the length of the longest bitonic subsequence.
+
+```
+Examples:
+
+{1, 3, 2, 1, 4, 6, 1}, the longest bitonic sub sequence is {1, 3, 4, 6, 1}, length is 5.
+```
+
+```java
+/*
+two dp:
+let las[i] = longest ascending subsequence ending at arr[i], so[0 ... i]
+lds[i] = longest descending subsequence ending at arr[i], so[i ... n - 1]
+
+for each i:
+  i as peak of bitonic is defined as las[i] + lds[i] - 1 #since i is overcounted
+
+update a global minimum
+
+time: O(n^2) to compute las and lds
+space: O(n)
+
+*/
+public class Solution {
+  public int longestBitonic(int[] arr) {
+    // Write your solution here
+    int n = arr.length;
+    if (n == 0) {
+      return 0;
+    }
+
+    int[] las = new int[n];
+    int[] lds = new int[n];
+
+    for (int i = 0; i < n; i++) {
+      las[i] = 1;
+      for (int j = i - 1; j >= 0; j--) {
+        if (arr[i] > arr[j]) {
+          las[i] = Math.max(las[i], las[j] + 1);
+        }
+      }
+    }
+    
+    for (int i = n - 1; i >= 0; i--) {
+      lds[i] = 1;
+      for (int j = i + 1; j < n; j++) {
+        if (arr[i] > arr[j]) {
+          lds[i] = Math.max(lds[i], lds[j] + 1);
+        }
+      }
+    }
+
+    //post processing
+    int max = 1;
+    for (int i = 0; i < n; i++) {
+      max = Math.max(max, las[i] + lds[i] - 1);
+    }
+    return max;
+  }
+}
+
+```
+
+### [1312. Minimum Insertion Steps to Make a String Palindrome](https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/)
+
+Given a string s. In one step you can insert any character at any index of the string.
+
+Return the minimum number of steps to make s palindrome.
+
+A **Palindrome String** is one that reads the same backward as well as forward.
+
+```java
+/*
+dp[i][j] = least insertion to make s[i...j] a palindrome
+
+base case:
+dp[i][i] = 0
+
+induction rule:
+dp[i][j] = dp[i + 1][j - 1] if s[i] == s[j] 
+         = min(dp[i + 1][j] + 1,
+               dp[i][j - 1] + 1)
+
+time: O(n^2)
+space: O(n^2) can be optimized to O(n) using 1 dimensional rolling array
+*/
+class Solution {
+    public int minInsertions(String s) {
+        int n = s.length();
+        if (n == 0) {
+          return 0;
+        }
+
+        int[][] dp = new int[n][n];
+        for (int i = n - 1; i >= 0; i--) {
+          for (int j = i + 1; j < n; j++) {
+            if (s.charAt(i) == s.charAt(j)) {
+              dp[i][j] = dp[i + 1][j - 1];
+            } else {
+              dp[i][j] = Math.min(dp[i + 1][j], dp[i][j - 1]) + 1;
+            }
+          }
+        }
+        return dp[0][n - 1];
+    }
+}
+```
+
+### 44. Wildcard Matching
+Given an input string (s) and a pattern (p), implement wildcard pattern matching with support for `'?'` and `'*'`.
+
+`'?' Matches any single character.`
+
+`'*' Matches any sequence of characters (including the empty sequence).`
+
+The matching should cover the entire input string (not partial).
+```
+Note:
+
+s could be empty and contains only lowercase letters a-z.
+p could be empty and contains only lowercase letters a-z, and characters like ? or *.
+```
+```
+Example 1:
+
+Input:
+s = "aa"
+p = "a"
+Output: false
+Explanation: "a" does not match the entire string "aa".
+Example 2:
+
+Input:
+s = "aa"
+p = "*"
+Output: true
+Explanation: '*' matches any sequence.
+Example 3:
+
+Input:
+s = "cb"
+p = "?a"
+Output: false
+Explanation: '?' matches 'c', but the second letter is 'a', which does not match 'b'.
+Example 4:
+
+Input:
+s = "adceb"
+p = "*a*b"
+Output: true
+Explanation: The first '*' matches the empty sequence, while the second '*' matches the substring "dce".
+```
+```java
+/*
+let dp[i][j] be if s[0 ... i] matches p[0 ... j]
+
+base case:
+  dp[0][0] = s[0] == p[0]
+
+induction rule:
+  if (match(s.charAt(i - 1), p.charAt(j - 1))) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else if (p.charAt(j - 1) == '*') {
+          dp[i][j] = dp[i - 1][j - 1] || dp[i - 1][j] || dp[i][j - 1];
+        }
+
+recursion:
+  f(s, p, i, j) return if s, p matches from [0 ... i], [0 ... j]
+
+  base case:
+  i == s.length() && j = p.length()
+
+  recursive rule:
+  if s[i] == p[j] || p[j] == ?:
+    return f(s, p, i + 1, j + 1)
+  if p[j] == '*':
+    return f(s, p, i + 1, j + 1) || f(s, p, i + 1, j) || f(s, p, i, j + 1)
+        *each represent: * matches s[i]; * matches s[i] and future s[i + 1 ...]; * does not match s[i], so s[i] matches p[j + 1 ...];
+  
+  return false
+
+*/
+class Solution {
+    public boolean isMatch(String s, String p) {
+        // s == input str, p = pattern str
+        int m = s.length();
+        int n = p.length();
+        if (m == 0 && n == 0) {
+          return true;
+        }
+
+        boolean[][] dp = new boolean[m + 1][n + 1];
+        dp[0][0] = true;
+        //handle the trick base case where p = "***"
+        for (int j = 1; j <= n; j++) {
+            if (p.charAt(j - 1) == '*') {
+                dp[0][j] = true;
+            } else {
+                break;
+            }
+        }
+        for (int i = 1; i <= m; i++) {
+          for (int j = 1; j <= n; j++) {
+            if (match(s.charAt(i - 1), p.charAt(j - 1))) {
+              dp[i][j] = dp[i - 1][j - 1];
+            } else if (p.charAt(j - 1) == '*') {
+              dp[i][j] = dp[i - 1][j - 1] || dp[i - 1][j] || dp[i][j - 1];
+            }
+          }
+        }
+
+        return dp[m][n];
+    }
+  public boolean match(char c, char p) {
+    return p == '?' || p == c;
+  }
+}
+```
+
+## Stock Problems
+- [309. Best Time to Buy and Sell Stock with Cooldown](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/)
+  - How does the FSM ensures that final sold[n - 1], is the state of having AT MOST TWO Transactions? Ops
+- [123. Best Time to Buy and Sell Stock III](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)
+
+
+
+```java
+int getKthArray(Array arr, int k);
+int getKth(Array A, Array B, int k, int l, int r) {
+
+  int m1 = getKthArray(A, k / 2);
+  int m2 = getKthArray(B, k / 2);
+  
+}
+```

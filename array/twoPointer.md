@@ -125,3 +125,56 @@ class Solution {
     }
 }
 ```
+
+
+
+```java
+vector<vector<int>> twoSum(int[] arr, int target) {
+    vector<vector<int>> res;
+    hashset<int> set;
+    for (int i : arr) {
+        if (set.contains(target - i)) {
+            vector<int> sum = {i, target - i};
+            res.push_back(sum);
+        } else {
+            set.add(i);
+        }
+    }
+    return res;
+}
+/*
+1 1 2 3 6 8 9,   t = 10
+    i j     k
+
+s = 10 > 7
+j--
+
+s < 7:
+i++
+
+time: O(nlogn)
+space: O(logn)
+*/
+vector<vector<int>> twoSum(int[] arr, int target) {
+    vector<vector<int>> res;
+    hashset<int> set;
+    mergeSort(arr);
+    int i = 0;
+    int j = arr.length - 1;
+    while (i < j) {
+        int s = arr[i] + arr[j];
+        if (s == target) {
+            vector<int> v = {arr[i], arr[j]};
+            i++;
+            while (i < arr.length && arr[i] == arr[i - 1]) {
+                i++;
+            }
+        } else if (s < target) {
+            i++;
+        } else {
+            j--;
+        }
+    }
+    return res;
+}
+```
