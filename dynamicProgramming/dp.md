@@ -840,50 +840,7 @@ public class Solution {
 
 ```
 
-### [1312. Minimum Insertion Steps to Make a String Palindrome](https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/)
 
-Given a string s. In one step you can insert any character at any index of the string.
-
-Return the minimum number of steps to make s palindrome.
-
-A **Palindrome String** is one that reads the same backward as well as forward.
-
-```java
-/*
-dp[i][j] = least insertion to make s[i...j] a palindrome
-
-base case:
-dp[i][i] = 0
-
-induction rule:
-dp[i][j] = dp[i + 1][j - 1] if s[i] == s[j] 
-         = min(dp[i + 1][j] + 1,
-               dp[i][j - 1] + 1)
-
-time: O(n^2)
-space: O(n^2) can be optimized to O(n) using 1 dimensional rolling array
-*/
-class Solution {
-    public int minInsertions(String s) {
-        int n = s.length();
-        if (n == 0) {
-          return 0;
-        }
-
-        int[][] dp = new int[n][n];
-        for (int i = n - 1; i >= 0; i--) {
-          for (int j = i + 1; j < n; j++) {
-            if (s.charAt(i) == s.charAt(j)) {
-              dp[i][j] = dp[i + 1][j - 1];
-            } else {
-              dp[i][j] = Math.min(dp[i + 1][j], dp[i][j - 1]) + 1;
-            }
-          }
-        }
-        return dp[0][n - 1];
-    }
-}
-```
 
 ### 44. Wildcard Matching
 Given an input string (s) and a pattern (p), implement wildcard pattern matching with support for `'?'` and `'*'`.
@@ -993,6 +950,210 @@ class Solution {
   public boolean match(char c, char p) {
     return p == '?' || p == c;
   }
+}
+```
+
+### [10. Regular Expression Matching](https://leetcode.com/problems/regular-expression-matching) *****
+Given an input string (s) and a pattern (p), implement regular expression matching with support for `'.'` and `'*'`.
+
+`'.' Matches any single character.`
+
+`'*' Matches zero or more of the preceding element.`
+The matching should cover the entire input string (not partial).
+
+```
+Note:
+
+s could be empty and contains only lowercase letters a-z.
+p could be empty and contains only lowercase letters a-z, and characters like . or *.
+```
+
+```
+Example 1:
+
+Input:
+s = "aa"
+p = "a"
+Output: false
+Explanation: "a" does not match the entire string "aa".
+Example 2:
+
+Input:
+s = "aa"
+p = "a*"
+Output: true
+Explanation: '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes "aa".
+Example 3:
+
+Input:
+s = "ab"
+p = ".*"
+Output: true
+Explanation: ".*" means "zero or more (*) of any character (.)".
+Example 4:
+
+Input:
+s = "aab"
+p = "c*a*b"
+Output: true
+Explanation: c can be repeated 0 times, a can be repeated 1 time. Therefore, it matches "aab".
+Example 5:
+
+Input:
+s = "mississippi"
+p = "mis*is*p*."
+Output: false
+```
+
+```java
+//refer this problem to 44. Wildcard Matching
+public class Solution {
+    public boolean isMatch(String s, String p) {
+        // s == input str, p = pattern str
+        int m = s.length();
+        int n = p.length();
+        if (m == 0 && n == 0) {
+          return true;
+        }
+
+        boolean[][] dp = new boolean[m + 1][n + 1];
+        dp[0][0] = true;
+        //handle the trick base case where p = "***"
+        for (int j = 1; j <= n; j++) {
+            if (p.charAt(j - 1) == '*') {
+                if (j == 1 || j > 1 && dp[0][j - 2]) {
+                  dp[0][j] = true;
+                }
+            }
+        }
+        for (int i = 1; i <= m; i++) {
+          for (int j = 1; j <= n; j++) {
+            if (match(s.charAt(i - 1), p.charAt(j - 1))) {
+              dp[i][j] = dp[i - 1][j - 1];
+            } else if (p.charAt(j - 1) == '*') {
+              //use * as a match
+              // so (...a, ...a*) we can either use dp to look up (...,...) or (..., ...a*)
+              dp[i][j] = (dp[i - 1][j - 1] || dp[i - 1][j]) && j > 1 && match(s.charAt(i - 1), p.charAt(j - 2));
+              //ignore *
+              if (!dp[i][j] && j > 1) {
+                dp[i][j] = dp[i][j - 2];
+              }
+            }
+          }
+        }
+
+        return dp[m][n];
+    }
+  public boolean match(char c, char p) {
+    return p == '.' || p == c;
+  }
+}
+
+```
+
+
+## 中心开花
+### 96. Merge Stones  ****
+We have a list of piles of stones, each pile of stones has a certain weight, represented by an array of integers. In each move, we can **merge two adjacent piles** into one larger pile, the cost is the sum of the weights of the two piles. We merge the piles of stones until we have only one pile left. Determine the minimum total cost.
+
+Assumptions
+
+stones is not null and is length of at least 1
+```
+Examples
+
+{4, 3, 3, 4}, the minimum cost is 28
+
+merge first 4 and first 3, cost 7
+
+merge second 3 and second 4, cost 7
+
+merge two 7s, cost 14
+
+total cost = 7 + 7 + 14 = 28
+```
+
+```java
+/*
+let dp[i][j] = cost of merging stones[i ... j]
+  induction rule:
+    dp[i][j] = min(dp[i][j], dp[i][k] + dp[k + 1][j] + sum[i ... j]), i <= k < j
+  base case:
+    dp[i][i] = 0
+let sum[i] = sum stones from [0 ... i], so so sum from stons[i ... j] = sum[j] - sum[i] + stones[i]
+time: O(n^3)
+space: O(n^2)
+*/
+public class Solution {
+  public int minCost(int[] stones) {
+    int n = stones.length;
+    if (n == 0) {
+      return 0;
+    }
+
+    int[] sum = new int[n];
+    for (int i = 0; i < n; i++) {
+      sum[i] = i == 0 ? stones[0] : sum[i - 1] + stones[i];
+    }
+
+    int[][] dp = new int[n][n];
+    for (int i = n - 2; i >= 0; i--) {
+      for (int j = i + 1; j < n; j++) {
+        dp[i][j] = Integer.MAX_VALUE;
+        int s = sum[j] - sum[i] + stones[i];
+        for (int k = i; k < j; k++) {
+          dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k + 1][j] + s);
+        }
+      }
+    }
+    return dp[0][n - 1];
+
+  }
+}
+```
+
+### [1312. Minimum Insertion Steps to Make a String Palindrome](https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/)
+
+Given a string s. In one step you can insert any character at any index of the string.
+
+Return the minimum number of steps to make s palindrome.
+
+A **Palindrome String** is one that reads the same backward as well as forward.
+
+```java
+/*
+dp[i][j] = least insertion to make s[i...j] a palindrome
+
+base case:
+dp[i][i] = 0
+
+induction rule:
+dp[i][j] = dp[i + 1][j - 1] if s[i] == s[j] 
+         = min(dp[i + 1][j] + 1,
+               dp[i][j - 1] + 1)
+
+time: O(n^2)
+space: O(n^2) can be optimized to O(n) using 1 dimensional rolling array
+*/
+class Solution {
+    public int minInsertions(String s) {
+        int n = s.length();
+        if (n == 0) {
+          return 0;
+        }
+
+        int[][] dp = new int[n][n];
+        for (int i = n - 1; i >= 0; i--) {
+          for (int j = i + 1; j < n; j++) {
+            if (s.charAt(i) == s.charAt(j)) {
+              dp[i][j] = dp[i + 1][j - 1];
+            } else {
+              dp[i][j] = Math.min(dp[i + 1][j], dp[i][j - 1]) + 1;
+            }
+          }
+        }
+        return dp[0][n - 1];
+    }
 }
 ```
 
