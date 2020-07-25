@@ -178,3 +178,65 @@ vector<vector<int>> twoSum(int[] arr, int target) {
     return res;
 }
 ```
+
+### [16. 3Sum Closest](https://leetcode.com/problems/3sum-closest/)
+Given an array nums of n integers and an integer target, find three integers in nums such that the sum is closest to target. Return the sum of the three integers. You may assume that each input would have exactly one solution.
+
+```
+Example 1:
+
+Input: nums = [-1,2,1,-4], target = 1
+Output: 2
+Explanation: The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
+```
+
+```java
+/*
+3 sum variation:
+
+looking for s such that s = a + b + c, where {abc} are in nums array, and s is the closest to input target
+
+1. sort the input array
+2. run two sum two pointer and update a global minimum(absolute distance to target)
+
+time: O(nlogn + n^2)
+space: O(logn) for sorting
+
+*/
+class Solution {
+    public int threeSumClosest(int[] nums, int target) {
+        Arrays.sort(nums);
+        int n = nums.length;
+        if (n < 3) {
+            return -1;
+        }
+        int min = nums[n - 1] + nums[n - 2] + nums[n - 3];
+        int i = 0;
+        while (i < n - 2) {
+            int twoSum = target - nums[i];
+            int minTwoSum = twoSum(nums, twoSum, i + 1, n - 1);
+            int minThreeSum = minTwoSum + nums[i];
+            min = Math.abs(min - target) <  Math.abs(minThreeSum - target) ? min : minThreeSum;
+            i++;
+            while (i < n - 2 && nums[i] == nums[i - 1]) {
+                i++;
+            }
+        }
+        return min;
+    }
+    //find closest two sum to t given range arr[l ... r]
+    public int twoSum(int[] arr, int t, int l, int r) {
+        int res = arr[l] + arr[r];
+        while (l < r) {
+            int s = arr[l] + arr[r];
+            res = Math.abs(res - t) < Math.abs(s - t) ? res : s;
+            if (s < t) {
+                l++;
+            } else {
+                r--;
+            }
+        }
+        return res;
+    }
+}
+```

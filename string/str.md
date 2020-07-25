@@ -233,3 +233,77 @@ class Solution {
     }
 }
 ```
+
+### 6. ZigZag Conversion
+The string "PAYPALISHIRING" is written in a zigzag pattern on a given number of rows like this: (you may want to display this pattern in a fixed font for better legibility)
+```
+P   A   H   N
+A P L S I I G
+Y   I   R
+And then read line by line: "PAHNAPLSIIGYIR"
+
+Write the code that will take a string and make this conversion given a number of rows:
+
+string convert(string s, int numRows);
+Example 1:
+
+Input: s = "PAYPALISHIRING", numRows = 3
+Output: "PAHNAPLSIIGYIR"
+Example 2:
+
+Input: s = "PAYPALISHIRING", numRows = 4
+Output: "PINALSIGYAHRPI"
+Explanation:
+
+P     I    N
+A   L S  I G
+Y A   H R
+P     I
+```
+
+```java
+/*
+alg: iterative following the requirements
+
+create a list of strings ls, track the global index read cur at s
+for each iteration:
+    for i < ls.len: append s[cur++] to ls[i]
+    set i = ls.len - 2
+    for i > 0: append s[cur++] to ls[i]
+    
+    break at anytime when cur == s.length
+
+time: O(n)
+space: O(n)
+*/
+class Solution {
+    public String convert(String s, int numRows) {
+        int n = s.length();
+        if (n == 0) {
+            return s;
+        }
+        List<StringBuilder> ls = new ArrayList<>();
+        for (int i = 0; i < numRows; i++) {
+            ls.add(new StringBuilder());
+        }
+        
+        int cur = 0;
+        while (cur != n) {
+            for (int i = 0; i < numRows && cur != n; i++) {
+                StringBuilder sb = ls.get(i);
+                sb.append(s.charAt(cur++));
+            }
+            for (int i = numRows - 2; i > 0 && cur != n; i--) {
+                StringBuilder sb = ls.get(i);
+                sb.append(s.charAt(cur++));
+            }
+        }
+        
+        StringBuilder res = new StringBuilder();
+        for (StringBuilder sb : ls) {
+            res.append(sb);
+        }
+        return res.toString();
+    }
+}
+```

@@ -139,3 +139,82 @@ class Solution {
     }
 }
 ```
+
+### 4. Median of Two Sorted Arrays  ****
+There are two sorted arrays nums1 and nums2 of size m and n respectively.
+
+Find the median of the two sorted arrays. The overall run time complexity should be `O(log (m+n))`.
+
+You may assume nums1 and nums2 cannot be both empty.
+```
+Example 1:
+
+nums1 = [1, 3]
+nums2 = [2]
+
+The median is 2.0
+Example 2:
+
+nums1 = [1, 2]
+nums2 = [3, 4]
+
+The median is (2 + 3)/2 = 2.5
+```
+
+```java
+class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        int m = nums1.length;
+        int n = nums2.length;
+        boolean even = (m + n) % 2 == 0;
+        //if [1,2,3,4] we finding k = 2 & 3th = 2 since helper will find both 2 and 2 + 1, if [1,2,3] we finding k = 2th smallest element
+        int kth = even ? (m + n) / 2 : ((m + n) / 2) + 1;
+        return kth(nums1, nums2, kth, 0, m - 1, 0, n - 1, even);
+    }
+    /*
+    A: bounded by l1 ... r1, size m; B: bounded by l2 ... r2, size n
+    algorithm: recursion, where k represents the kth element (starting from k = 1, k = 2...)
+    recursive rule:
+        find min(li + k/2, ri)th in A, B, we call this index m1 and m2 respectively
+        if A[m1] < B[m2]: 
+            1. all A[l1 ... m1] can be discarded, so there are on average k/2 elemnts removed(occasionally r2 - r1 + 1 elements removed)
+            2. we recursively return kth(a, b, k - sizeOfRemoved, m1 + 1, r1, l2, r2)
+            
+        if A[m1] > B[m2]: all B[l2 ... m2] ...
+        if A[m1] == B[m2]: either A[l1 ... m1] or B[l2 ... m2] can be discarded, we only need to keep any of the A[m1] or B[m2]
+    base case:
+        if l1 == a.len: return B[l1 + k - 1]
+        if l2 == b.len: return A[l2 + k - 1]
+        if k == 1: return a[l1] < b[l2] ? a[l1] : b[l2]
+    use a flag 'two' to determine if we need to find both (n / 2) & (n / 2 + 1)th element
+    */
+    public double kth(int[] a, int[] b, int k, int l1, int r1, int l2, int r2, boolean two) {
+        //System.out.println("k: " + k + ", l1: " + l1 + ",l2 " + l2 + ", two: " + two);
+        if (l1 == a.length) {
+            return two ? ((b[l2 + k - 1] + b[l2 + k]) / 2.0) : b[l2 + k - 1];
+        } else if (l2 == b.length) {
+            return two ? ((a[l1 + k - 1] + a[l1 + k]) / 2.0) : a[l1 + k - 1];
+        } else if (k == 1) {
+            if (two) {
+                double first = a[l1] < b[l2] ? a[l1++] : b[l2++];
+                double second;
+                if (l1 == a.length || l2 == b.length) {
+                    second = l1 == a.length ? b[l2] : a[l1];
+                } else {
+                    second = a[l1] < b[l2] ? a[l1] : b[l2];
+                }
+                //System.out.println(first + " " + second);
+                return (first + second) / 2.0;
+            }
+            return a[l1] < b[l2] ? a[l1] : b[l2];
+        }
+        
+        int m1 = Math.min(l1 - 1 + k / 2, r1);
+        int m2 = Math.min(l2 - 1 + k / 2, r2);
+        if (a[m1] <= b[m2]) {
+            return kth(a, b, k - (m1 - l1 + 1), m1 + 1, r1, l2, r2, two);
+        }
+        return kth(a, b, k - (m2 - l2 + 1), l1, r1, m2 + 1, r2, two);
+    }
+}
+```

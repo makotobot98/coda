@@ -296,6 +296,45 @@ public class Solution {
 }
 ```
 
+### L. Least Moves To Ascending Array
+Given an integer array, what is the minimum number of operations to convert it to an ascending array.
+
+One operation you can move one element of the array to another position.
+
+
+```
+Examples:
+
+{1, 3, 2, 4}, the least moves needed is 1, move 2 to the middle of 1 and 3.
+```
+
+```java
+/*
+least move to ascending array is directly related to the longest ascending subsequence = length of array - # of longest ascending subsequence
+time: O(n^2)
+space: O(n)
+*/
+public class Solution {
+  public int leastMoves(int[] arr) {
+    int n = arr.length;
+    if (n == 0) {
+      return 0;
+    }
+    int[] las = new int[n];
+    int max = 1;
+    for (int i = 0; i < n; i++) {
+      las[i] = 1;
+      for (int j = i - 1; j >= 0; j--) {
+        if (arr[i] > arr[j] && las[j] + 1 > las[i]) {
+          las[i] = las[j] + 1;
+        }
+      }
+      max = Math.max(max, las[i]);
+    }
+    return n - max;
+  }
+}
+```
 
 ### L. Largest SubArray Product ***
 
