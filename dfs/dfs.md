@@ -85,6 +85,7 @@ The length of the given array will not exceed 15.
 The range of integer in the given array is [-100,100].
 The given array may contain duplicates, and two equal integers should also be considered as a special case of increasing sequence.
 ```
+
 ```java
 /*
 
@@ -209,5 +210,58 @@ class Solution {
         return false;
     }
     
+}
+```
+
+### [478. Generate Random Point in a Circle](https://leetcode.com/problems/generate-random-point-in-a-circle/) ****
+Given the radius and x-y positions of the center of a circle, write a function randPoint which generates a uniform random point in the circle.
+```
+Note:
+
+input and output values are in floating-point.
+radius and x-y position of the center of the circle is passed into the class constructor.
+a point on the circumference of the circle is considered to be in the circle.
+randPoint returns a size 2 array containing x-position and y-position of the random point, in that order.
+Example 1:
+
+Input: 
+["Solution","randPoint","randPoint","randPoint"]
+[[1,0,0],[],[],[]]
+Output: [null,[-0.72939,-0.65505],[-0.78502,-0.28626],[-0.83119,-0.19803]]
+Example 2:
+
+Input: 
+["Solution","randPoint","randPoint","randPoint"]
+[[10,5,-7.5],[],[],[]]
+Output: [null,[11.52438,-8.33273],[2.46992,-16.21705],[11.13430,-12.42337]]
+```
+
+```java
+/*
+alg: Rejection Sampling
+generate points instead on a square bounded by 2 * radius, then if the generated point can have a eucalidean distance(sqrt(x - xcenter)^2 + (y - ycenter)^2) less than the radius, we then accept the sample
+*/
+class Solution {
+    double xc;
+    double yc;
+    double rad;
+    public Solution(double radius, double x_center, double y_center) {
+        this.xc = x_center;
+        this.yc = y_center;
+        this.rad = radius;
+    }
+    
+    public double[] randPoint() {
+        double x0 = xc - rad;
+        double y0 = yc - rad;
+        while (true) {
+            double x = x0 + Math.random() * rad * 2;
+            double y = y0 + Math.random() * rad * 2;
+            if (Math.sqrt(Math.pow((x - xc), 2) + Math.pow((y - yc), 2)) <= rad) {
+                return new double[]{x, y};
+            }
+        }
+        
+    }
 }
 ```
