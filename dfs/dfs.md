@@ -132,3 +132,82 @@ class Solution {
     }
 }
 ```
+
+
+### 473. Matchsticks to Square
+
+Remember the story of Little Match Girl? By now, you know exactly what matchsticks the little match girl has, please find out a way you can make one square by using up all those matchsticks. You should not break any stick, but you can link them up, and each matchstick must be used exactly one time.
+
+Your input will be several matchsticks the girl has, represented with their stick length. Your output will either be true or false, to represent whether you could make one square using all the matchsticks the little match girl has.
+
+```
+Example 1:
+Input: [1,1,2,2,2]
+Output: true
+
+Explanation: You can form a square with length 2, one side of the square came two sticks with length 1.
+Example 2:
+Input: [3,3,3,3,4]
+Output: false
+
+Explanation: You cannot find a way to form a square with all the matchsticks.
+```
+
+```java
+/*
+dfs:
+
+recursion tree: each level represent pick a num to one of the four bucket
+
+            {1,1,2,2,2}
+        /       |       |       \
+      {1,,,}   {,1}     {,,1,}  {,,,1}
+      /     \
+     {11,,,} {1,1,,} ...
+    
+time: O(4^n)
+space: O(n)
+*/
+class Solution {
+    public boolean makesquare(int[] nums) {
+        if (nums.length == 0) {
+            return false;
+        }
+        
+        int[] sums = new int[4];
+        
+        int sum = 0;
+        for (int n : nums) {
+            sum += n;
+        }
+        
+        int d = sum / 4;
+        if (d * 4 != sum) {
+            return false;
+        }
+        
+        return dfs(nums, 0, sums, d);
+    }
+    public boolean dfs(int[] nums, int cur, int[] sums, int s) {
+        if (cur == nums.length) {
+            if (sums[0] == s && sums[0] == sums[1] && sums[1] == sums[2] && sums[2] == sums[3]) {
+                return true;
+            }
+            return false;
+        }
+        
+        int n = nums[cur];
+        for (int i = 0; i < sums.length; i++) {
+            if (sums[i] + n <= s) {
+                sums[i] += n;
+                if (dfs(nums, cur + 1, sums, s)) {
+                return true;
+                }
+                sums[i] -= n;
+            }
+        }
+        return false;
+    }
+    
+}
+```
