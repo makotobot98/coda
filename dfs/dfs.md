@@ -212,3 +212,145 @@ class Solution {
     
 }
 ```
+
+### [140. Word Break II](https://leetcode.com/problems/word-break-ii/)*****
+Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, add spaces in s to construct a sentence where each word is a valid dictionary word. Return all such possible sentences.
+
+```
+Note:
+
+The same word in the dictionary may be reused multiple times in the segmentation.
+You may assume the dictionary does not contain duplicate words.
+Example 1:
+
+Input:
+s = "catsanddog"
+wordDict = ["cat", "cats", "and", "sand", "dog"]
+Output:
+[
+  "cats and dog",
+  "cat sand dog"
+]
+```
+
+```java
+/*
+dfs:
+    each level select a word from the word dict to break [0 ... i], add the word to a prefix list, and recursively add words in the range of [i + 1 ... len - 1], we use a dp to store a list of the concatenation of words can be made in range [i + 1 ... len - 1]
+
+time: O(2^n)
+space: O(2^n)
+*/
+class Solution {
+    public List<String> wordBreak(String s, List<String> wordDict) {
+        List<String> res = new ArrayList<>();
+        if (s.length() == 0) {
+            return res;
+        }
+        
+        Set<String> set = new HashSet<>();
+        for (String str : wordDict) {
+            set.add(str);
+        }
+        List<List<String>> ls = dfs(s, 0, set, new HashMap<Integer, List<List<String>>>());
+        for (List<String> l : ls) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = l.size() - 1; i > 0; i--) {
+                sb.append(l.get(i));
+                sb.append(" ");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            res.add(sb.toString());
+        }
+        return res;
+    }
+    public List<List<String>> dfs(String s, int cur, Set<String> set, Map<Integer, List<List<String>>> map) {
+        if (cur == s.length()) {
+            List<List<String>> ls = new ArrayList<>();
+            List<String> l = new ArrayList<>();
+            l.add("");
+            ls.add(l);
+            return ls;
+        } else if (map.containsKey(cur)) {
+            return map.get(cur);
+        }
+        
+        List<List<String>> subres = new ArrayList<>();
+        for (int i = cur; i < s.length(); i++) {
+            String sub = s.substring(cur, i + 1);
+            if (set.contains(sub)) {
+                
+                for (List<String> ls : dfs(s, i + 1, set, map)) {
+                    List<String> l = new ArrayList<>();
+                    l.addAll(ls);
+                    l.add(sub);
+                    subres.add(l);
+                }
+            }
+        }
+        map.put(cur, subres);
+        return subres;
+    }
+}
+```
+
+
+### 1286. Iterator for Combination
+
+```java
+
+/*
+alg: preprocess all combination and store as integer bit masks
+                abcd
+            /          \        \       \
+            a           b       c       d
+        /       \
+        ab      ac
+
+1. Generate all combinations as a preprocessing.
+2. Use bit masking to generate all the combinations.
+
+*/
+class CombinationIterator {
+    List<Integer> ls;
+    int cur;
+    int combinationLength;
+    String s;
+    public CombinationIterator(String characters, int combinationLength) {
+        this.combinationLength = combinationLength;
+        this.s = characters;
+        ls = new ArrayList<Integer>();
+        dfs(characters, 0, 0, combinationLength, ls, 0);
+    }
+    
+    public String next() {
+        char[] arr = new char[combinationLength];
+        int idx = 0;
+        int mask = ls.get(cur++);
+        for (int i = 0; i < 15; i++) {
+            if (((mask >> i) & 1) == 1) {
+                arr[idx++] = s.charAt(i);
+            }
+        }
+        return new String(arr);
+    }
+    
+    public boolean hasNext() {
+        return cur != ls.size();
+    }
+    public void dfs(String s, int cur, int size, int n, List<Integer> res, int prefix) {
+        if (size == n) {
+            res.add(prefix);
+            return;
+        }
+        
+        for (int i = cur; i < s.length(); i++) {
+            prefix ^= (1 << i);
+            dfs(s, i + 1, size + 1, n, res, prefix);
+            prefix ^= (1 << i);
+        }
+    }
+    
+}
+
+```
