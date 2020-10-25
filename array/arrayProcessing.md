@@ -273,3 +273,241 @@ class Solution {
     }
 }
 ```
+
+### 435. Non-overlapping Intervals
+Given a collection of intervals, find the minimum number of intervals you need to remove to make the rest of the intervals non-overlapping.
+
+```
+Example 1:
+
+Input: [[1,2],[2,3],[3,4],[1,3]]
+Output: 1
+Explanation: [1,3] can be removed and the rest of intervals are non-overlapping.
+Example 2:
+
+Input: [[1,2],[1,2],[1,2]]
+Output: 2
+Explanation: You need to remove two [1,2] to make the rest of intervals non-overlapping.
+Example 3:
+
+Input: [[1,2],[2,3]]
+Output: 0
+Explanation: You don't need to remove any of the intervals since they're already non-overlapping.
+```
+```java
+/*
+best first search(greedy):
+    preprocess sort the interval by j then by i
+    linear scan(from left to right) the sorted intervals, and keep a global interval right end, remove excessive intervals one by one
+    
+time: O(nlogn)
+space: O(n)
+*/
+class Solution {
+    public int eraseOverlapIntervals(int[][] intervals) {
+        int n = intervals.length;
+        if (n == 0) {
+            return n;
+        }
+        Arrays.sort(intervals, (i1, i2) -> {
+            return i1[1] - i2[1] == 0 ? i1[0] - i2[0] : i1[1] - i2[1];
+        });
+        
+        int res = 0;
+        int r = intervals[0][1];
+        
+        for (int i = 1; i < intervals.length; i++) {
+            int[] it = intervals[i];
+            if (it[0] < r) {
+                res++;
+            } else {
+                r = it[1];
+            }
+        }
+        return res;
+    }
+}
+```
+
+### 835. Image Overlap
+```java
+/*
+One important insight is that shifting one matrix to a direction is equivalent to shifting the other matrix to the opposite direction, in the sense that we would have the same overlapping zone at the end.
+
+we iterate all possible # of shifts and count the overlapping region at each step. (we count moving left and up by equivalently shifting B right and down, so index is positive)
+time: O(n^4)
+space: O(1)
+*/
+class Solution {
+    protected int shiftAndCount(int xShift, int yShift, int[][] M, int[][] R) {
+        int count = 0;
+        int rRow = 0;
+        // count the cells of ones in the overlapping zone.
+        for (int mRow = yShift; mRow < M.length; ++mRow) {
+            int rCol = 0;
+            for (int mCol = xShift; mCol < M.length; ++mCol) {
+                if (M[mRow][mCol] == 1 && M[mRow][mCol] == R[rRow][rCol])
+                    count += 1;
+                rCol += 1;
+            }
+            rRow += 1;
+        }
+        return count;
+    }
+
+    public int largestOverlap(int[][] A, int[][] B) {
+        int maxOverlaps = 0;
+
+        for (int yShift = 0; yShift < A.length; ++yShift)
+            for (int xShift = 0; xShift < A.length; ++xShift) {
+                // move one of the matrice up and left and vice versa.
+                // (equivalent to move the other matrix down and right)
+                maxOverlaps = Math.max(maxOverlaps, shiftAndCount(xShift, yShift, A, B));
+                maxOverlaps = Math.max(maxOverlaps, shiftAndCount(xShift, yShift, B, A));
+            }
+
+        return maxOverlaps;
+    }
+}
+```
+
+
+### 57. Insert Interval
+Given a set of non-overlapping intervals, insert a new interval into the intervals (merge if necessary).
+
+You may assume that the intervals were initially sorted according to their start times.
+```
+Example 1:
+
+Input: intervals = [[1,3],[6,9]], newInterval = [2,5]
+Output: [[1,5],[6,9]]
+```
+
+```java
+/*
+alg: recursion
+
+
+recursively insert interval i into intervals in index range [cur ... len - 1]
+
+recursive rule:
+    get current interval intervals[cur]
+    if i.end <= cur_interval.end: merge i and cur as new_interval
+    recursively insert the interval in rnage [cur + 1 ... len - 1]
+
+base case:
+    if cur == len, simply insert interval at the last
+    if i.end < cur_interval.start, insert at position cur
+    
+time: O(n)
+space: O(n)
+
+*/
+class Solution {
+    public int[][] insert(int[][] intervals, int[] newInterval) {
+        List<List<Integer>> ls = new ArrayList<>();
+        rec(intervals, 0, ls, newInterval);
+        
+        int s = ls.size();
+        int[][] res = new int[s][2];
+        for (int i = 0; i < s; i++) {
+            List<Integer> in = ls.get(i);
+            res[i][0] = in.get(0);
+            res[i][1] = in.get(1);
+        }
+        
+        return res;
+    }
+    
+    public void rec(int[][] intervals, int cur, List<List<Integer>> ls, int[] i) {
+        if (cur == intervals.length) {
+            ls.add(Arrays.asList(i[0], i[1]));
+            return;
+        } 
+        
+        int[] curInterval = intervals[cur];
+        
+        if (i[1] < curInterval[0]) {
+            //i and cur are non overlapping, and insert position is at cur
+            //insert at pos = cur
+            ls.add(Arrays.asList(i[0], i[1]));
+            
+            //append the rest of the intervals
+            for (int k = cur; k < intervals.length; k++) {
+                ls.add(Arrays.asList(intervals[k][0], intervals[k][1]));
+            }
+            return;
+        } 
+        
+        if (i[0] > curInterval[1]) {    //i and cur are non overlapping, add cur to result list
+            ls.add(Arrays.asList(curInterval[0], curInterval[1]));
+            rec(intervals, cur + 1, ls, i);
+        } else {
+            //merge interval i and cur
+            i[0] = Math.min(i[0], curInterval[0]);
+            i[1] = Math.max(i[1], curInterval[1]);
+            rec(intervals, cur + 1, ls, i);
+        }
+    }
+}
+```
+
+
+### 1094. Car Pooling
+
+You are driving a vehicle that has capacity empty seats initially available for passengers.  The vehicle only drives east (ie. it cannot turn around and drive west.)
+
+Given a list of trips, trip[i] = [num_passengers, start_location, end_location] contains information about the i-th trip: the number of passengers that must be picked up, and the locations to pick them up and drop them off.  The locations are given as the number of kilometers due east from your vehicle's initial location.
+
+Return true if and only if it is possible to pick up and drop off all passengers for all the given trips. 
+
+ 
+```
+Example 1:
+
+Input: trips = [[2,1,5],[3,3,7]], capacity = 4
+Output: false
+Example 2:
+
+Input: trips = [[2,1,5],[3,3,7]], capacity = 5
+Output: true
+```
+
+```java
+/*
+
+algorithm: best first search
+pre sort trips according to the start location
+use a min heap sort by end location
+for i : trips: 
+    if pq.isNotEmpty && pq.top.endLocation <= trip[i].startLocation: poll trips that are done, update the capacity
+    add trip[i] to pq, update the capacity
+    
+    at any iteration, if capacity cannot be updated (say cant fit more ppl), return false
+    
+time: O(nlogn)
+*/
+
+class Solution {
+    public boolean carPooling(int[][] trips, int capacity) {
+        Arrays.sort(trips, (t1, t2) -> t1[1] - t2[1]);
+        PriorityQueue<int[]> pq = new PriorityQueue<>((t1, t2) -> t1[2] - t2[2]);
+        
+        for (int[] t : trips) {
+            while (!pq.isEmpty() && pq.peek()[2] <= t[1]) {
+                int[] prev = pq.poll();
+                capacity += prev[0];
+            }
+            
+            if (capacity - t[0] < 0) {
+                return false;
+            }
+            capacity -= t[0];
+            pq.offer(t);
+        }
+        return true;
+    }
+}
+```
+
+

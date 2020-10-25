@@ -1,7 +1,80 @@
 > Ratings: * to ***** (not so-so to review -> super worthy to review)
 
 # Linear Scan snd Look Back 
+### 983. Minimum Cost For Tickets ***
+In a country popular for train travel, you have planned some train travelling one year in advance.  The days of the year that you will travel is given as an array days.  Each day is an integer from 1 to 365.
+```
+Train tickets are sold in 3 different ways:
 
+a 1-day pass is sold for costs[0] dollars;
+a 7-day pass is sold for costs[1] dollars;
+a 30-day pass is sold for costs[2] dollars.
+The passes allow that many days of consecutive travel.  For example, if we get a 7-day pass on day 2, then we can travel for 7 days: day 2, 3, 4, 5, 6, 7, and 8.
+```
+
+Return the minimum number of dollars you need to travel every day in the given list of days.
+
+ 
+```
+Example 1:
+
+Input: days = [1,4,6,7,8,20], costs = [2,7,15]
+Output: 11
+Explanation: 
+For example, here is one way to buy passes that lets you travel your travel plan:
+On day 1, you bought a 1-day pass for costs[0] = $2, which covered day 1.
+On day 3, you bought a 7-day pass for costs[1] = $7, which covered days 3, 4, ..., 9.
+On day 20, you bought a 1-day pass for costs[0] = $2, which covered day 20.
+In total you spent $11 and covered all the days of your travel.
+```
+
+```java
+/*
+dp[i] = min costs to travel from day[0 ... i) exclusive
+time: O(365)
+space: O(365)
+*/
+class Solution {
+    int[] ds = {1, 7, 30};
+    public int mincostTickets(int[] days, int[] costs) {
+        int n = days.length;
+        if (n == 0) {
+            return 0;
+        }
+        
+        
+        int[] arr = new int[366];
+        for (int i = 0; i < n; i++) {
+            arr[days[i]] = 1;
+        }
+        n = 365;
+        int[] dp = new int[n + 1];
+        
+        //handle 1-day ticket ticket is more expensive then 2-day
+        for (int i = costs.length - 2; i >= 0; i--) {
+            costs[i] = Math.min(costs[i + 1], costs[i]);
+        }
+        
+        //induction rule
+        for (int i = 1; i <= n; i++) {
+            if (arr[i] == 0) {
+                dp[i] = dp[i - 1];
+            } else {
+                int c = Integer.MAX_VALUE;
+                for (int j = 0; j < ds.length; j++) {
+                    int idx = i - ds[j];
+                    if (idx < 0) {
+                        idx = 0;
+                    }
+                    c = Math.min(c, dp[idx] + costs[j]);
+                }
+                dp[i] = c;
+            }
+        }
+        return dp[n];
+    }
+}
+```
 ### [518. Coin Change II](https://leetcode.com/problems/coin-change-2/) ***
 
 You are given coins of different denominations and a total amount of money. Write a function to compute the number of combinations that make up that amount. You may assume that you have infinite number of each kind of coin.
@@ -1261,4 +1334,34 @@ class Solution {
         return S > 1000 ? 0 : dp[nums.length - 1][S + 1000];
     }
 }
+```
+
+### 1510. stone game IV
+```java
+
+class Solution {
+    public boolean winnerSquareGame(int n) {
+        HashMap<Integer, Boolean> cache = new HashMap<>();
+        cache.put(0, false);
+        return dfs(cache, n);
+    }
+
+    public static boolean dfs(HashMap<Integer, Boolean> cache, int remain) {
+        if (cache.containsKey(remain)) {
+            return cache.get(remain);
+        }
+        int sqrt_root = (int) Math.sqrt(remain);
+        for (int i = 1; i <= sqrt_root; i++) {
+            // if there is any chance to make the opponent lose the game in the next round,
+            // then the current player will win.
+            if (!dfs(cache, remain - i * i)) {
+                cache.put(remain, true);
+                return true;
+            }
+        }
+        cache.put(remain, false);
+        return false;
+    }
+}
+
 ```

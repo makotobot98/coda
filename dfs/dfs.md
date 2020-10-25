@@ -294,7 +294,86 @@ class Solution {
 }
 ```
 
+### 967. Numbers With Same Consecutive Differences
+Return all non-negative integers of length N such that the absolute difference between every two consecutive digits is K.
 
+Note that every number in the answer must not have leading zeros except for the number 0 itself. For example, 01 has one leading zero and is invalid, but 0 is valid.
+
+You may return the answer in any order.
+
+```
+Example 1:
+
+Input: N = 3, K = 7
+Output: [181,292,707,818,929]
+Explanation: Note that 070 is not a valid number, because it has leading zeroes.
+Example 2:
+
+Input: N = 2, K = 1
+Output: [10,12,21,23,32,34,43,45,54,56,65,67,76,78,87,89,98]
+```
+
+```java
+/*
+
+k = 3, N = 2
+                        {}
+                /       |       |       \
+                1       2       3       4   ....
+                |       |
+                4       5
+                
+each level represent picking nth digit, for 1st digit, we simply pick all
+nth digit must be a valid digit relative to the previous digit, meaning for n + 1 th digit, it must be generated from +- k from nth digits, thus each node has at 2 branches, and there are n levels
+time: O(2^n)
+space: O(n) backtracking
+*/
+class Solution {
+    public int[] numsSameConsecDiff(int N, int K) {
+        List<Integer> ls = new ArrayList<>();
+        if (N == 1) {
+            ls.add(0);
+        }
+        dfs(N, K, new int[N], 0, ls);
+        
+        int[] res = new int[ls.size()];
+        for (int i = 0; i < ls.size(); i++) {
+            res[i] = ls.get(i);
+        }
+        return res;
+    }
+    public void dfs(int n, int k, int[] prefix, int cur, List<Integer> res) {
+        if (cur == prefix.length) {
+            int num = 0;
+            for (int i = 0; i < n; i++) {
+                num = num * 10 + prefix[i];
+            }
+            res.add(num);
+            return;
+        }
+        
+        if (cur == 0) {
+            for (int i = 1; i <= 9; i++) {
+                prefix[cur] = i;
+                dfs(n, k, prefix, cur + 1, res);
+            }
+        } else {
+            int prev = prefix[cur - 1];
+            int add = prev + k;
+            int sub = prev - k;
+            if (add < 10) {
+                prefix[cur] = add;
+                dfs(n, k, prefix, cur + 1, res);
+            }
+            if (sub != add && sub >= 0) {
+                prefix[cur] = sub;
+                dfs(n, k, prefix, cur + 1, res);
+            }
+        }
+    }
+}
+
+```
 ### 1286. Iterator for Combination
 
 ```java
@@ -351,6 +430,209 @@ class CombinationIterator {
         }
     }
     
+}
+
+```
+
+
+### 489. Robot Room Cleaner
+Given a robot cleaner in a room modeled as a grid.
+
+Each cell in the grid can be empty or blocked.
+
+The robot cleaner with 4 given APIs can move forward, turn left or turn right. Each turn it made is 90 degrees.
+
+When it tries to move into a blocked cell, its bumper sensor detects the obstacle and it stays on the current cell.
+
+Design an algorithm to clean the entire room using only the 4 given APIs shown below.
+
+```java
+interface Robot {
+  // returns true if next cell is open and robot moves into the cell.
+  // returns false if next cell is obstacle and robot stays on the current cell.
+  boolean move();
+
+  // Robot will stay on the same cell after calling turnLeft/turnRight.
+  // Each turn will be 90 degrees.
+  void turnLeft();
+  void turnRight();
+
+  // Clean the current cell.
+  void clean();
+}
+```
+
+```java
+
+/*
+alg: dfs backtrack.
+backtrack:
+    1. need to maintain the current direction, so we always move up(relative to where the robot currently face, up means to move in the direction where robot face): *thus each time move to next cell, need to maintain the current face direction
+    2. backtrack by turn left left, move, turn left left
+    3. use a hashset to track the coordinates
+*/
+class Solution {
+    int[][] dirs = {{0, -1}, {-1, 0}, {0, 1}, {1, 0}};
+    Set<List<Integer>> set = new HashSet<>();
+    
+    public void cleanRoom(Robot robot) {
+        set.add(Arrays.asList(0, 0));
+        dfs(robot, 0, 0, 0);
+    }
+    public void dfs(Robot robot, int i, int j, int d) {
+        
+        robot.clean();
+        for (int k = 0; k < 4; k++) {
+            int dnext = (d + k) % 4;
+            int inext = i + dirs[dnext][0];
+            int jnext = j + dirs[dnext][1];
+            List<Integer> next = Arrays.asList(inext, jnext);
+            if (!set.contains(next) && robot.move()) {
+                set.add(next);
+                dfs(robot, inext, jnext, dnext);
+                backTrack(robot);
+            }
+            robot.turnLeft();
+        }
+    }
+    public void backTrack(Robot r) {
+        r.turnLeft();
+        r.turnLeft();
+        r.move();
+        r.turnLeft();
+        r.turnLeft();
+    }
+}
+```
+
+
+# 216. Combination Sum III
+Find all possible combinations of k numbers that add up to a number n, given that only numbers from 1 to 9 can be used and each combination should be a unique set of numbers.
+
+Note:
+
+All numbers will be positive integers.
+The solution set must not contain duplicate combinations.
+```
+Example 1:
+
+Input: k = 3, n = 7
+Output: [[1,2,4]]
+Example 2:
+
+Input: k = 3, n = 9
+Output: [[1,2,6], [1,3,5], [2,3,4]]
+```
+
+```java
+/*
+algorithm: dfs
+
+each level pick a num from 1 - 9, it must be the case that the choice must make current sum < n. there are at most 9 branch for each node, and at most k levels
+base case: we picked k numbers and curSum == sum
+
+time: O(9^k)
+space: O(k)
+
+*/
+class Solution {
+    public List<List<Integer>> combinationSum3(int k, int n) {
+        List<List<Integer>> ls = new ArrayList<>();
+        dfs(n, 0, 0, 0, new int[k], ls);
+        return ls;
+    }
+    
+    //cur = current index, curSum = current prefix sum, range = number offset to pick, so we only pick numbers in [range + 1 ... 9], this deduplicate our answer as well as prevent same number getting picked twice
+    public void dfs(int n, int cur, int curSum, int range, int[] prefix, List<List<Integer>> res) {
+        if (cur == prefix.length) {
+            if (curSum == n) {
+                List<Integer> ls = new ArrayList<>();
+                for (int i : prefix) {
+                    ls.add(i);
+                }
+                res.add(ls);
+            }
+            return;
+        }
+        
+        //we only pick number that is not picked in prefix[0 ... cur - 1], which means to pick in the range of [range + 1 ... 9]
+        for (int i = range + 1; i <= 9; i++) {
+            if (curSum + i <= n) {
+                prefix[cur] = i;
+                dfs(n, cur + 1, curSum + i, i, prefix, res);
+            }
+        }
+        
+    }
+}
+
+```
+
+### 980. Unique Paths III
+On a 2-dimensional `grid`, there are 4 types of squares:
+
+- `1` represents the starting square.  There is exactly one starting square.
+- `2` represents the ending square.  There is exactly one ending square.
+- `0` represents empty squares we can walk over.
+- `-1` represents obstacles that we cannot walk over.
+Return the number of 4-directional walks from the starting square to the ending square, that `walk over every non-obstacle square exactly once`.
+ 
+```
+Example 1:
+
+Input: [[1,0,0,0],[0,0,0,0],[0,0,2,-1]]
+Output: 2
+Explanation: We have the following two paths: 
+1. (0,0),(0,1),(0,2),(0,3),(1,3),(1,2),(1,1),(1,0),(2,0),(2,1),(2,2)
+2. (0,0),(1,0),(2,0),(2,1),(1,1),(0,1),(0,2),(0,3),(1,3),(1,2),(2,2)
+```
+```java
+class Solution {
+    int[][] dirs = {{0, 1}, {1, 0}, {-1, 0}, {0, -1}};
+    public int uniquePathsIII(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int[] res = new int[1];
+        List<Integer> s = null;
+        int ei = 0;
+        int ej = 0;
+        int nzero = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == 1) {
+                    s = Arrays.asList(i, j);
+                } else if (grid[i][j] == 2) {
+                    ei = i;
+                    ej = j;
+                } else if (grid[i][j] == 0) {
+                    nzero++;
+                }
+            }
+        }
+        Set<List<Integer>> set = new HashSet<>();
+        set.add(s);
+        dfs(grid, s.get(0), s.get(1), ei, ej, nzero + 2, set, res);
+        return res[0];
+    }
+    public void dfs(int[][] grid, int i, int j, int ei, int ej, int n, Set<List<Integer>> set, int[] res) {
+        if (i == ei && j == ej && set.size() == n) {
+            res[0]++;
+        }
+        
+        for (int[] dir : dirs) {
+            int inext = dir[0] + i;
+            int jnext = dir[1] + j;
+            List<Integer> next = Arrays.asList(inext, jnext);
+            if (inext < 0 || inext >= grid.length || jnext < 0 || jnext >= grid[0].length) {
+                continue;
+            } 
+            if (!set.contains(next) && grid[inext][jnext] != -1) {
+                set.add(next);
+                dfs(grid, inext, jnext, ei, ej, n, set, res);
+                set.remove(next);
+            }
+        }
+    }
 }
 
 ```

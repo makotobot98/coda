@@ -1,4 +1,5 @@
 
+
 ### 468. Validate IP Address  **
 Write a function to check whether an input string is a valid IPv4 address or IPv6 address or neither.
 
@@ -305,5 +306,116 @@ class Solution {
         }
         return res.toString();
     }
+}
+```
+
+# Sliding Window
+
+# Recursion
+### 763. Partition Labels ***
+A string S of lowercase English letters is given. We want to partition this string into as many parts as possible so that each letter appears in at most one part, and return a list of integers representing the size of these parts.
+
+```
+Example 1:
+
+Input: S = "ababcbacadefegdehijhklij"
+Output: [9,7,8]
+Explanation:
+The partition is "ababcbaca", "defegde", "hijhklij".
+This is a partition so that each letter appears in at most one part.
+A partition like "ababcbacadefegde", "hijhklij" is incorrect, because it splits S into less parts.
+```
+
+```java
+/*
+recursion & hashmap<letter, rightmost appeared idx>
+
+int f(idx, curRightIdx, s, map): returns the maximum window(so each letter in window appear once) right in the range[idx, curRightIdx]
+
+recursive rule:
+    finx maxIdx in range of [idx + 1, map[idx]], and map[maxIdx] > all map[i] in that range
+    recursively find the wubdiw right calling f(maxIdx + 1, map[maxIdx], s, map)
+base case:
+    if maxIdx < curRightIdx: no need furthur search, return curRightIdx
+
+time: O(n) since we searched each idx at most once, and load each idx to map once
+space: O(1)
+*/
+class Solution {
+    public List<Integer> partitionLabels(String S) {
+        int[] seen = new int[26];
+        int n = S.length();
+        
+        Arrays.fill(seen, Integer.MIN_VALUE);
+        for (int i = 0; i < n; i++) {
+            seen[S.charAt(i) - 'a'] = i;
+        }
+        
+        //recursively build the window
+        List<Integer> res = new ArrayList<>();
+        int cur = 0;
+        int prevWindowRight = -1;
+        while (cur < n) {
+            int curWindowRight = rec(cur, seen[S.charAt(cur) - 'a'], S, seen);
+            res.add(curWindowRight - prevWindowRight);
+            prevWindowRight = curWindowRight;
+            cur = curWindowRight + 1;
+        }
+        return res;
+    }
+    //[idx, curRight] is the current minimum window
+    int rec(int idx, int curRight, String s, int[] map) {
+        
+        int maxRight = map[s.charAt(idx) - 'a'];
+        
+        for (int i = idx + 1; i <= curRight; i++) {
+            char c = s.charAt(i);
+            if (map[c - 'a'] > maxRight) {
+                maxRight = map[c - 'a'];
+            }
+        }
+        
+        if (maxRight <= curRight) {
+            return curRight;
+        }
+        
+        return rec(curRight + 1, maxRight, s, map);
+    }
+}
+```
+
+### 187. Repeated DNA Sequences *****
+```java
+class Solution {
+  public List<String> findRepeatedDnaSequences(String s) {
+    int L = 10, n = s.length();
+    if (n <= L) return new ArrayList();
+
+    // rolling hash parameters: base a
+    int a = 4, aL = (int)Math.pow(a, L);
+
+    // convert string to array of integers
+    Map<Character, Integer> toInt = new
+            HashMap() {{put('A', 0); put('C', 1); put('G', 2); put('T', 3); }};
+    int[] nums = new int[n];
+    for(int i = 0; i < n; ++i) nums[i] = toInt.get(s.charAt(i));
+
+    int h = 0;
+    Set<Integer> seen = new HashSet();
+    Set<String> output = new HashSet();
+    // iterate over all sequences of length L
+    for (int start = 0; start < n - L + 1; ++start) {
+      // compute hash of the current sequence in O(1) time
+      if (start != 0)
+        h = h * a - nums[start - 1] * aL + nums[start + L - 1];
+      // compute hash of the first sequence in O(L) time
+      else
+        for(int i = 0; i < L; ++i) h = h * a + nums[i];
+      // update output and hashset of seen sequences
+      if (seen.contains(h)) output.add(s.substring(start, start + L));
+      seen.add(h);
+    }
+    return new ArrayList<String>(output);
+  }
 }
 ```
