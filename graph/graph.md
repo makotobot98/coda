@@ -1,4 +1,7 @@
+# Uncategorized
+
 ### [787. Cheapest Flights Within K Stops](https://leetcode.com/problems/cheapest-flights-within-k-stops/) ***
+
 There are `n` cities connected by `m` flights. Each flight starts from city u and arrives at `v` with a price `w`.
 
 Now given all the cities and flights, together with starting city src and the destination dst, your task is to find the cheapest price from src to dst with `up to k stops`. If there is no such route, output -1.
@@ -176,3 +179,164 @@ class Solution {
 }
 
 ```
+
+
+
+### 721. Accounts Merge\*\*\*\*
+
+
+
+```java
+/*
+alg: build a graph and dfs for connected components
+
+build a bidirectional graph so all emails under the same account will have an edge to the first email(this is arbitrary, can be 2nd, or last ..). With usage of HashMap<email, ListOfEmailSameAcc>, we can manage to build a graph by iterating accounts
+
+after which we run dfs to add all emails in the same connected component
+
+time: O(sum(aloga)), where a = length accounts[i] for each acc
+space: O(sum(a))
+*/
+class Solution {
+    public List<List<String>> accountsMerge(List<List<String>> accounts) {
+        Map<String, List<String>> graph = buildGraph(accounts);
+        List<List<String>> res = new ArrayList<>();
+        
+        //dfs
+        Set<String> seen = new HashSet<>();
+        for (List<String> acc : accounts) {
+            String name = acc.get(0);
+            String emailFirst = acc.get(1);
+            if (!seen.contains(emailFirst)) { // only dfs on emails that have not been traversed yet
+                List<String> ls = new ArrayList<>();
+                ls.add(name);
+                seen.add(emailFirst);
+                dfs(emailFirst, graph, ls, seen);
+                //append the merged account
+                Collections.sort(ls);
+                res.add(ls);
+            }
+        }
+        return res;
+    }
+    
+    public void dfs(String cur, Map<String, List<String>> graph, List<String> ls, Set<String> set) {
+        ls.add(cur);
+        for (String e : graph.get(cur)) {
+            if (!set.contains(e)) {
+                set.add(e);
+                dfs(e, graph, ls, set);
+            }
+        }
+    }
+    
+    public Map<String, List<String>> buildGraph(List<List<String>> accounts) {
+        Map<String, List<String>> map = new HashMap<>();
+        
+        for (List<String> acc : accounts) {
+            String name = acc.get(0);
+            
+            String emailFirst = acc.get(1);
+            for (int i = 1; i < acc.size(); i++) {
+                String email = acc.get(i);
+                map.computeIfAbsent(email, x -> new ArrayList<String>()).add(emailFirst);
+                map.computeIfAbsent(emailFirst, x -> new ArrayList<String>()).add(email);
+            }
+        }
+        
+        return map;
+    }
+}
+```
+
+
+
+### 1192. Critical Connections in a Network (dfs cycle detection)
+
+```java
+/*
+the problem is the same as finding an edge that's not part of the cycle. dfs backtracking with height
+
+suppose we pass a height parameter h as we run the dfs in the graph, for any node cur, if we found cur.neighbor.h != null, we have found a cycle, then as we backtracking, if cur.h > found cycle height then cur is part of the cycle, else cur to cur.neighbor is a critical connection
+
+alg:
+    1. build a bidirectional graph
+    2. run dfs to find the non cycle edge
+    recursive rule:
+        for neighbor n:
+            if height of n < cur || min height found in n < cur:
+                (n, cur) is a cycle edge
+            else:
+                add (n, cur) to result
+        return minHeightFound in cur
+*/
+class Solution {
+    public List<List<Integer>> criticalConnections(int n, List<List<Integer>> connections) {
+        Map<Integer, List<Integer>> graph = buildGraph(connections);
+        List<List<Integer>> res = new ArrayList<>();
+        int[] minHeights = new int[n];
+        Arrays.fill(minHeights, Integer.MAX_VALUE);
+        dfs(0, -1, minHeights, 0, graph, res);
+        return res;
+    }
+    //return the found cycle height
+    public int dfs(int cur, int prev, int[] minHeights, int h, Map<Integer, List<Integer>> graph, List<List<Integer>> res) 
+    {
+        
+        if (minHeights[cur] != Integer.MAX_VALUE) {
+            return minHeights[cur];
+        }
+        
+        minHeights[cur] = h;
+        int foundMinHeight = h; //track the minimum height found, since there could be multiple cycles, track the cycle with the min height can assure we find all cycle edges
+        for (int n : graph.get(cur)) {
+            if (n == prev) {
+                continue;
+            }
+            int height = dfs(n, cur, minHeights, h + 1, graph, res);
+            if (h < height) {
+                res.add(Arrays.asList(cur, n));
+            } else {
+                foundMinHeight = Math.min(foundMinHeight, height);
+            }
+        }
+        minHeights[cur] = foundMinHeight; //update min height
+        return foundMinHeight;
+    }
+    public Map<Integer, List<Integer>> buildGraph(List<List<Integer>> ls) {
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        for (List<Integer> l : ls) {
+            map.computeIfAbsent(l.get(0), k -> new ArrayList<Integer>()).add(l.get(1));
+            map.computeIfAbsent(l.get(1), k -> new ArrayList<Integer>()).add(l.get(0));
+        }
+        return map;
+    }
+}
+```
+
+
+
+# Connected Component
+
+### BinarySearch 656. Gene Mutation Groups
+
+You are given a list of unique strings `genes` where each element has the same length and contains characters `"A"`, `"C"`, `"G"` and/or `"T"`.
+
+- If strings `a` and `b` are the same string except for one character, then `a` and `b` are in the same mutation group.
+- If strings `a` and `b` are in a group and `b` and `c` are in a group, then `a` and `c` are in the same group.
+
+Return the total number of mutation groups.
+
+```
+Example 1
+Input:
+	genes = ["ACGT", "ACCT", "AGGT", "TTTT", "TTTG"]
+Output
+	2
+	
+Explanation:
+There are two mutation groups:
+- ["ACGT", "ACCT", "AGGT"]
+- ["TTTT", "TTTG"]
+```
+

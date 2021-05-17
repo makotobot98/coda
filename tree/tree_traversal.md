@@ -1,5 +1,55 @@
 # Traversal
 
+### 285. Inorder Successor in BST
+
+```java
+/*
+alg: BST two pointer traversal
+	- one pointer to traverse, while the other pointer track the previous 'Bigger' node
+		- the Bigger previous node is only updated when we go left substree (when cur.val > target.val)
+	- when traverser finds the target:
+		- try to find the smallest node in the right subtree of target
+			- if such node does not exist, return the previous 'Bigger' node
+			- else return this node
+time: O(height = logn)
+space: O(1)
+*/
+class Solution {
+    public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
+        TreeNode prev = null;
+        while (root != null) {
+            if (root.val == p.val) {
+                TreeNode min = smallestRight(root); //finds smallest node in right subtree
+                return min == null ? prev : min;
+            } else if (root.val < p.val) {
+                root = root.right;	//do not update the prev "bigger" node here
+            } else {
+                prev = root;
+                root = root.left;
+            }
+        }
+        return null;
+    }
+    public TreeNode smallestRight(TreeNode root) {
+        if (root.right == null) {
+            return null;
+        } else if (root.right.left == null) {
+            return root.right;
+        }
+        
+        TreeNode prev = root.right;
+        TreeNode p = root.right.left;
+        while (p != null) {
+            prev = p;
+            p = p.left;
+        }
+        return prev;
+    }
+}
+```
+
+
+
 ### 129. Sum Root to Leaf Numbers
 Given a binary tree containing digits from 0-9 only, each root-to-leaf path could represent a number.
 
@@ -73,7 +123,7 @@ Given a 2D board and a list of words from the dictionary, find all words in the 
 
 Each word must be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.
 
- 
+
 ```
 Example:
 
@@ -313,4 +363,62 @@ public class Codec {
 // Codec codec = new Codec();
 // codec.deserialize(codec.serialize(root));
 
+```
+
+
+### 99. Recover Binary Search Tree
+```java
+/*
+observation: inorder of bst gives a sorted array, given that two nodes are swapped, we visualize two elements in a sorted array is swapped, so we do a inorder traversal to locate the swapped node 
+    - first node is identified misplaced if its next inorder iterator is less than that node
+    - second node is identified misplaced it it is less than the prev node
+        e.g., 1 4 3 2 inf, here we found 4 is misplaced at 3, we found 2 is misplaced since its < 3
+
+edge case1: two misplaced node are adjacent
+    e.g., 1 3 2 4, the previous property still hold
+    *but note its tricky that two nodes are spotted at the same time
+
+recursion param: use two boolean flag to track if we have found the first and 2nd misplaced nodes, use a prev pointer to track the previously visited node (prev initially = -inf)
+recursive rule:
+    1. inorder traverse left subtree
+    2. 
+        - if found[0] && found[1], swap value
+        - if root.value < prev.val, its a either a 1st,2nd or both misplaced node found
+        - update the prev pointer
+    3. inorder traverse right subtree
+    
+time: O(n)
+space: O(1)
+*/
+class Solution {
+    public void recoverTree(TreeNode root) {
+        TreeNode[] found = new TreeNode[2];
+        TreeNode[] prev = new TreeNode[1];
+        prev[0] = new TreeNode(Integer.MIN_VALUE);
+        inorder(root, found, prev);
+        
+        //swap
+        int temp = found[0].val;
+        found[0].val = found[1].val;
+        found[1].val = temp;
+        
+    }
+    public void inorder(TreeNode root, TreeNode[] found, TreeNode[] prev) {
+        if (root == null) {
+            return;
+        }
+        
+        inorder(root.left, found, prev);
+        if (root.val < prev[0].val) {
+            if (found[0] == null) {
+                found[0] = prev[0];
+            } 
+            if (found[0] != null) {//tricky to handle the two nodes spotted at same place, meaning two misplaced nodes are adjacent; if not adjacent, this node will be overwrite when spotted again the 2nd node
+                found[1] = root;
+            }
+        }
+        prev[0] = root;
+        inorder(root.right, found, prev);
+    }
+}
 ```

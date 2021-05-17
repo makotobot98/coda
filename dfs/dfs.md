@@ -1,3 +1,66 @@
+### 329. Longest Increasing Path in a Matrix ***
+
+Proposals:
+
+- brute force dfs
+
+- dp dp, since LAS in a matrix is equivalent to longest descending sequence
+  - let `dp1[i][j]` = longest ascending path ending at (i, j), **allowing moving right to down ONLY**
+
+  - similarly, `dp2[i][j]` = longest descending ....
+
+  - use a global max to track either the longest ascending or descending path so far
+      time: O(n^2), space: O(n^2 optimized to n)
+
+  - **BUT** this won't work, **there are paths that cannot be described by only moving right and down**
+
+      <img src="rsrc/dfs/image-20210413155752820.png" alt="image-20210413155752820" style="zoom:25%;" />
+
+- dfs with memorization using 4 directions
+
+  - **distinguish this approach with find maximum profits in a matrix with `matrix[i][j] = profit of a single cell`, in the max profit problem**, we cannot do 4 direction dfs with memorization for the reason that  the max profit at `(i,j)` might be included in one of its neighbor already, causing duplicate profit being considered
+  - for each i,j entry, the LIP starting from ij can be recursively defined being `dp[i][j] = max(dp[x][y]) + 1, for xy in 4 adjacent neighbors of ij`. 
+    - This is valid because if `matrix[i1][j1] < matrix[i2][j2], with (i1, j1) being neighbor of (i2, j2), it must be the case that (i1, j1) is not on the LIP path starting from (i2, j2)`
+    - time: O(mn), space: O(mn)
+
+  ```java
+  class Solution {
+      int[][] dirs = {{0, 1}, {1, 0}, {-1, 0}, {0, -1}};
+      public int longestIncreasingPath(int[][] matrix) {
+          int m = matrix.length;
+          int n = matrix[0].length;
+          int[][] dp = new int[m][n];
+          int max = 0;
+          for (int i = 0; i < m; i++) {
+              for (int j = 0; j < n; j++) {
+                  if (dp[i][j] == 0) {
+                      max = Math.max(max, dfs(matrix, i, j, dp));
+                  }
+              }
+          }
+          return max;
+      }
+      public int dfs(int[][] m, int i, int j, int[][] dp) {
+          if (dp[i][j] != 0) {
+              return dp[i][j];
+          }
+          
+          dp[i][j] = 1;
+          for (int[] dir : dirs) {
+              int inext = i + dir[0];
+              int jnext = j + dir[1];
+              if (inext >= 0 && jnext >= 0 && inext < m.length && jnext < m[0].length && m[i][j] < m[inext][jnext])
+              {
+                  dp[i][j] = Math.max(dp[i][j], dfs(m, inext, jnext, dp) + 1);
+              }
+          }
+          return dp[i][j];
+      }
+  }
+  ```
+
+  
+
 ### [79. Word Search](https://leetcode.com/problems/word-search/) **
 
 Given a 2D board and a word, find if the word exists in the grid.
@@ -66,7 +129,7 @@ class Solution {
 
 Given an integer array, your task is to find all the different possible increasing subsequences of the given array, and the length of an increasing subsequence should be at least 2.
 
- 
+
 ```
 Example:
 
@@ -505,8 +568,79 @@ class Solution {
 }
 ```
 
+### 40. Combination Sum II
 
-# 216. Combination Sum III
+Given a collection of candidate numbers (`candidates`) and a target number (`target`), find all unique combinations in `candidates` where the candidate numbers sum to `target`.
+
+Each number in `candidates` may only be used **once** in the combination.
+
+**Note:** The solution set must not contain duplicate combinations.
+
+ 
+
+**Example 1:**
+
+```
+Input: candidates = [10,1,2,7,6,1,5], target = 8
+Output: 
+[
+[1,1,6],
+[1,2,5],
+[1,7],
+[2,6]
+]
+```
+
+```java
+/*
+alg: dfs, sort the input arr to dedup
+
+                    {1,1,2,3,4} t = 3
+                 /          |           \
+                1,t=2       2,t=1       3, t=0
+            /       |          |        |
+        1,1 t=1     1,2 t=0   return    return
+time: O(2^n)
+space: O(n)
+*/
+class Solution {
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        Arrays.sort(candidates);
+        dfs(candidates, target, 0, new ArrayList<Integer>(), res);
+        return res;
+    }
+    public void dfs(int[] arr, int target, int cur, List<Integer> prefix, List<List<Integer>> res) {
+        if (target == 0) {
+            List<Integer> ls = new ArrayList<>();
+            for (int i : prefix) {
+                ls.add(i);
+            }
+            res.add(ls);
+            return;
+        }
+        
+        int i = cur;
+        while (i < arr.length) {
+            if (target - arr[i] >= 0) {
+                prefix.add(arr[i]);
+                dfs(arr, target - arr[i], i + 1, prefix, res);
+                prefix.remove(prefix.size() - 1);
+            }
+            int i_next = i + 1;
+            while (i_next < arr.length && arr[i_next] == arr[i]) {
+                i_next++;
+            }
+            i = i_next;
+        }
+    }
+}
+```
+
+
+
+### 216. Combination Sum III
+
 Find all possible combinations of k numbers that add up to a number n, given that only numbers from 1 to 9 can be used and each combination should be a unique set of numbers.
 
 Note:
@@ -568,7 +702,93 @@ class Solution {
 
 ```
 
+### 377. Combination Sum IV \*\*\*
+
+Given an array of **distinct** integers `nums` and a target integer `target`, return *the number of possible combinations that add up to* `target`.
+
+The answer is **guaranteed** to fit in a **32-bit** integer.
+
+ 
+
+**Example 1:**
+
+```
+Input: nums = [1,2,3], target = 4
+Output: 7
+Explanation:
+The possible combination ways are:
+(1, 1, 1, 1)
+(1, 1, 2)
+(1, 2, 1)
+(1, 3)
+(2, 1, 1)
+(2, 2)
+(3, 1)
+Note that different sequences are counted as different combinations.
+```
+
+![image-20210420123115394](rsrc/dfs/image-20210420123115394.png)
+
+```java
+class Solution {
+    private HashMap<Integer, Integer> memo;
+
+    public int combinationSum4(int[] nums, int target) {
+        // minor optimization
+        // Arrays.sort(nums);
+        memo = new HashMap<>();
+        return combs(nums, target);
+    }
+
+    private int combs(int[] nums, int remain) {
+        if (remain == 0)
+            return 1;
+        if (memo.containsKey(remain))
+            return memo.get(remain);
+
+        int result = 0;
+        for (int num : nums) {
+            if (remain - num >= 0)
+                result += combs(nums, remain - num);
+            // minor optimizaton, early stopping
+            // else
+            //     break;
+        }
+        memo.put(remain, result);
+        return result;
+    }
+}
+```
+
+#### bottom up
+
+```java
+class Solution {
+
+    public int combinationSum4(int[] nums, int target) {
+        // minor optimization
+        // Arrays.sort(nums);
+        int[] dp = new int[target + 1];
+        dp[0] = 1;
+
+        for (int combSum = 1; combSum < target + 1; ++combSum) {
+            for (int num : nums) {
+                if (combSum - num >= 0)
+                    dp[combSum] += dp[combSum - num];
+                // minor optimizaton, early stopping
+                // else
+                //     break;
+            }
+        }
+        return dp[target];
+    }
+}
+```
+
+
+
 ### 980. Unique Paths III
+
 On a 2-dimensional `grid`, there are 4 types of squares:
 
 - `1` represents the starting square.  There is exactly one starting square.
@@ -576,7 +796,7 @@ On a 2-dimensional `grid`, there are 4 types of squares:
 - `0` represents empty squares we can walk over.
 - `-1` represents obstacles that we cannot walk over.
 Return the number of 4-directional walks from the starting square to the ending square, that `walk over every non-obstacle square exactly once`.
- 
+
 ```
 Example 1:
 
@@ -636,3 +856,228 @@ class Solution {
 }
 
 ```
+
+
+
+### 1849. Splitting a String Into Descending Consecutive Values
+
+```java
+class Solution {
+    public boolean splitString(String s) {
+        return dfs(s, 0, -1, 0);
+    }
+    public boolean dfs(String s, int cur, int prev, int cnt) {
+        if (cur == s.length()) {
+            if (cnt < 2) { //no spliting
+                return false;
+            } else {
+                return true;
+            }
+            
+        }
+        
+        //skip leading 0
+        while (cur < s.length() && s.charAt(cur) == '0') {
+            cur++;
+        }
+        
+        if (cur == s.length()) {
+            return prev == 1;   //0 is the last number, return true if prev == 1
+        }
+        
+        int num = 0;
+        for (int i = cur; i < s.length(); i++) {
+            num = num * 10 + (s.charAt(i) - '0');
+            if (prev == -1) { //if first split
+                if (dfs(s, i + 1, num, cnt + 1)) {
+                    return true;
+                }
+            } else if (num == prev - 1) { //non first split, must be prev - 1, and such number is unique
+                if (dfs(s, i + 1, num, cnt + 1)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+}
+```
+
+
+
+### BS478. Communication Towers \*\*
+
+```java
+import java.util.*;
+/*
+alg: dfs on to find groups of rows and columns, so in each group, all rows and columns can talk to each other
+
+time: O(mn)
+space: O(m + n)
+*/
+class Solution {
+    public int solve(int[][] matrix) {
+        if (matrix.length == 0 || matrix[0].length == 0) {
+            return 0;
+        }
+        
+        int cnt = 0;
+        Set<String> set = new HashSet<>();
+        for (int i = 0; i < matrix.length; i++) {
+            if (!set.contains("r" + String.valueOf(i))) {
+                int c = dfs(matrix, i, true, set);
+                if (c > 0) {
+                    cnt++;
+                }
+                
+            }
+        }
+        
+        return cnt;
+    }
+
+    //return if there is a tower group (if tower cur has no others to talk, return 0, else return n > 0)
+    public int dfs(int[][] m, int cur, boolean row, Set<String> set) {
+        if (row) {
+            set.add("r" + String.valueOf(cur));
+        } else {
+            set.add("c" + String.valueOf(cur));
+        }
+
+        int cnt = 0;
+        if (row) {
+            for (int j = 0; j < m[0].length; j++) {
+                if (m[cur][j] == 1 && !set.contains("c" + j)) {
+                    cnt++;
+                    //System.out.println(">>> going (" + cur + " " + j);
+                    dfs(m, j, false, set);
+                }
+            }
+        } else {
+            for (int i = 0; i < m.length; i++) {
+                if (m[i][cur] == 1 && !set.contains("r" + i)) {
+                    cnt++;
+                    //System.out.println(">>> going (" + i + " " + cur);
+                    dfs(m, i, true, set);
+                }
+            }
+        }
+        return cnt;
+    }
+}
+```
+
+
+
+### 126. Word Ladder II \*\*\*
+
+The solution did well in following optimization:
+
+- to generate the graph, for each word `wi`, we can essentially use `O(27 * len(wi))` to generate all outgoing edges for `wi`. see `getNeighbors()`
+- solution separates finding the shortest transformation sequence into find the shortest transformation distance using bfs then use dfs to search for that length.
+  - this way we greatly reduced the space overhead as we do not need to maintain a prefix to track previously added words
+  - it also limit # of nodes and depth that dfs will traverse to only the shortest depth. Since bfs will always stop after k steps where k = shortest distance
+
+
+
+Solution:
+
+The basic idea is:
+
+
+
+1). Use BFS to find the shortest distance between start and end, tracing the distance of crossing nodes from start node to end node, and store node's next level neighbors to HashMap;
+
+2). Use DFS to output paths with the same distance as the shortest distance from distance HashMap: compare if the distance of the next level node equals the distance of the current node + 1.
+
+
+
+```java
+class Solution {
+    public List<List<String>> findLadders(String start, String end, List<String> wordList) {
+       HashSet<String> dict = new HashSet<String>(wordList);
+       List<List<String>> res = new ArrayList<List<String>>();         
+       HashMap<String, ArrayList<String>> nodeNeighbors = new HashMap<String, ArrayList<String>>();// Neighbors for every node
+       HashMap<String, Integer> distance = new HashMap<String, Integer>();// Distance of every node from the start node
+       ArrayList<String> solution = new ArrayList<String>();
+
+       dict.add(start);          
+       bfs(start, end, dict, nodeNeighbors, distance);                 
+       dfs(start, end, dict, nodeNeighbors, distance, solution, res);   
+       return res;
+    }
+
+    // BFS: Trace every node's distance from the start node (level by level).
+    private void bfs(String start, String end, Set<String> dict, HashMap<String, ArrayList<String>> nodeNeighbors, HashMap<String, Integer> distance) {
+      for (String str : dict)
+          nodeNeighbors.put(str, new ArrayList<String>());
+
+      Queue<String> queue = new LinkedList<String>();
+      queue.offer(start);
+      distance.put(start, 0);
+
+      while (!queue.isEmpty()) {
+          int count = queue.size();
+          boolean foundEnd = false;
+          for (int i = 0; i < count; i++) {
+              String cur = queue.poll();
+              int curDistance = distance.get(cur);                
+              ArrayList<String> neighbors = getNeighbors(cur, dict);
+
+              for (String neighbor : neighbors) {
+                  nodeNeighbors.get(cur).add(neighbor);
+                  if (!distance.containsKey(neighbor)) {// Check if visited
+                      distance.put(neighbor, curDistance + 1);
+                      if (end.equals(neighbor))// Found the shortest path
+                          foundEnd = true;
+                      else
+                          queue.offer(neighbor);
+                      }
+                  }
+              }
+
+              if (foundEnd)
+                  break;
+          }
+      }
+
+    // Find all next level nodes.    
+    private ArrayList<String> getNeighbors(String node, Set<String> dict) {
+      ArrayList<String> res = new ArrayList<String>();
+      char chs[] = node.toCharArray();
+
+      for (char ch ='a'; ch <= 'z'; ch++) {
+          for (int i = 0; i < chs.length; i++) {
+              if (chs[i] == ch) continue;
+              char old_ch = chs[i];
+              chs[i] = ch;
+              if (dict.contains(String.valueOf(chs))) {
+                  res.add(String.valueOf(chs));
+              }
+              chs[i] = old_ch;
+          }
+
+      }
+      return res;
+    }
+
+    // DFS: output all paths with the shortest distance.
+    private void dfs(String cur, String end, Set<String> dict, HashMap<String, ArrayList<String>> nodeNeighbors, HashMap<String, Integer> distance, ArrayList<String> solution, List<List<String>> res) {
+        solution.add(cur);
+        if (end.equals(cur)) {
+           res.add(new ArrayList<String>(solution));
+        } else {
+           for (String next : nodeNeighbors.get(cur)) {            
+                if (distance.get(next) == distance.get(cur) + 1) {
+                     dfs(next, end, dict, nodeNeighbors, distance, solution, res);
+                }
+            }
+        }           
+       solution.remove(solution.size() - 1);
+    }
+}
+
+```
+

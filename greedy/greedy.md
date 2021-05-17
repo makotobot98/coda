@@ -410,3 +410,89 @@ class Solution {
     }
 }
 ```
+
+
+
+### 1833. Maximum Ice Cream Bars
+
+```java
+/*
+alg1: dp
+dp[i][j] = max icecream buying icecream [0 ... i], with j coins left
+recursive rule:
+    dp[i][j] = Math.max(dp[i - 1][j - costs[i]] + 1, dp[i - 1][j])
+base case:
+    dp[0][j] = 1 if costs[i] <= j else 0
+
+time: O(n*k), n = size of costs array, k = # of coins
+space: O(n*k), can be optimized to O(k) by rolling the dp
+
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        int[][] dp = new int[2][coins + 1];
+        for (int i = 1; i <= costs.length; i++) {
+            for (int j = 1; j <= coins; j++) {
+                dp[i % 2][j] = dp[(i - 1) % 2][j];
+                if (j - costs[i - 1] >= 0) {
+                    dp[i % 2][j] = Math.max(dp[i % 2][j], dp[(i - 1) % 2][j - costs[i - 1]] + 1);
+                }
+            }
+        }
+        return dp[costs.length % 2][coins];
+    }
+}
+*/
+/*
+alg2: greedy
+since the goal is to maximize the number of ice cream, we always prefer to take the smallest cost ice cream first
+time: O(nlogn) sort + linear scan
+*/
+class Solution {
+    public int maxIceCream(int[] costs, int coins) {
+        Arrays.sort(costs);
+        int res = 0;
+        for (int c : costs) {
+            if (coins - c < 0) {
+                return res;
+            } else {
+                coins -= c;
+                res++;
+            }
+        }
+        return res;
+    }
+}
+```
+
+### 630. Course Schedule III \*
+
+<img src="rsrc/greedy/image-20210503002418526.png" alt="image-20210503002418526"  />
+
+```java
+//time: O(n^2), space: O(1)
+public class Solution {
+    public int scheduleCourse(int[][] courses) {
+        System.out.println(courses.length);
+        Arrays.sort(courses, (a, b) -> a[1] - b[1]);
+        int time = 0, count = 0;
+        for (int i = 0; i < courses.length; i++) {
+            if (time + courses[i][0] <= courses[i][1]) {
+                time += courses[i][0];
+                count++;
+            } else {
+                int max_i = i;
+                for (int j = 0; j < i; j++) {
+                    if (courses[j][0] > courses[max_i][0])
+                        max_i = j;
+                }
+                if (courses[max_i][0] > courses[i][0]) {
+                    time += courses[i][0] - courses[max_i][0];
+                }
+                courses[max_i][0] = -1;
+            }
+        }
+        return count;
+    }
+}
+```
+

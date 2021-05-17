@@ -74,3 +74,106 @@ class Solution {
     }
 }
 ```
+
+
+
+
+
+### 82. Remove Duplicates from Sorted List II
+
+```java
+/*
+two pointer linear scan: one pointer's next pointing at the first non duplicate node, one pointer traverse
+
+
+
+
+define i = first non duplicate node, so [head, i] are non duplicates, [i.next, j) are duplicates, [j, tail] = unvisited
+
+at each iteration:
+    update j = j.next, move j to first non duplicate pointer such that j.val != i.next.val
+    
+    if (i.next == null): we r done
+    if (i.next.next != j): [i.next ... j) are duplicates
+        update i.next = j
+        since j could still be duplicate, we dont move i, simply update i.next
+    if (i.next.next == j): update i = i.next
+    
+
+time: O(n)
+space: O(1)
+*/
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+        if (head == null) {
+            return head;
+        }
+        ListNode dummy = new ListNode(Integer.MAX_VALUE);
+        dummy.next = head;
+        ListNode i = dummy;
+        ListNode j = head;
+        while (j != null) {
+            j = j.next;
+            while (j != null && j.val == i.next.val) {
+                j = j.next;
+            }
+            
+            if (i.next == null) {
+                break;
+            } else if (i.next.next != j) {
+                i.next = j;
+            } else {
+                i = i.next;
+            }
+        }
+        return dummy.next;
+    }
+}
+```
+
+### 109. Convert Sorted List to Binary Search Tree *
+
+```java
+/*
+divide and conquer, T(N) = 2T(N/2) + N, by master thm with k = 0, we derive the runtime to O(nlogn)
+note we can, convert the linkedlist into an array first, then we can access the mid point of the aray in O(1) time, so T'(N) = 2T'(N/2) + 1, thus we have O(N) runtime
+
+*/
+class Solution {
+    public TreeNode sortedListToBST(ListNode head) {
+        if (head == null) {
+            return null;
+        } else if (head.next == null) {
+            return new TreeNode(head.val);
+        }
+        
+        ListNode[] arr = getMidPrev(head);
+        ListNode prev = arr[0];
+        ListNode mid = arr[1];
+        ListNode right = mid.next;
+        mid.next = null;
+        if (prev != null) {
+            prev.next = null;
+        }
+        TreeNode root = new TreeNode(mid.val);
+        root.left = prev == null ? null : sortedListToBST(head);
+        root.right = sortedListToBST(right);
+        return root;
+        
+    }
+    //assuming head is not null
+    public ListNode[] getMidPrev(ListNode head) {
+        ListNode prev = null;
+        ListNode s = head;
+        ListNode f = head;
+        while (f != null && f.next != null && f.next.next != null) {
+            prev = s;
+            s = s.next;
+            f = f.next.next;
+        }
+        return new ListNode[]{prev, s};
+    }
+    
+}
+```
+
